@@ -11,6 +11,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import FloatingContact from "./components/FloatingContact";  // ← NEW
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AdminRoute from "./routes/AdminRoute";
+import { recordPageView } from "./utils/analytics";
 
 const Home = lazy(() => import("./pages/Home"));
 const Rooms = lazy(() => import("./pages/Rooms"));
@@ -39,6 +40,12 @@ const PageLoader = () => (
 const App = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
+
+  useEffect(() => {
+    if (!isAdminRoute) {
+      recordPageView(location.pathname);
+    }
+  }, [isAdminRoute, location.pathname]);
 
   // Scroll reveal observer — re-runs on every route change
   useEffect(() => {

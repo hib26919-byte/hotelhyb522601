@@ -1,10 +1,41 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
     function isAdmin() {
-      return request.auth != null &&
+      return isSignedIn() &&
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    function userIsNotChangingRole() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(["role"]);
+    }
+
+    function isValidPageView() {
+      return request.resource.data.keys().hasOnly([
+        "path",
+        "page",
+        "visitorId",
+        "referrer",
+        "viewport",
+        "userAgent",
+        "dateKey",
+        "createdAt"
+      ]) &&
+      request.resource.data.path is string &&
+      request.resource.data.page is string &&
+      request.resource.data.visitorId is string &&
+      request.resource.data.referrer is string &&
+      request.resource.data.viewport is string &&
+      request.resource.data.userAgent is string &&
+      request.resource.data.dateKey is string &&
+      request.resource.data.createdAt == request.time;
     }
 
     match /rooms/{roomId} {
@@ -22,40 +53,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    match /settings/{doc} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /users/{userId} {
-      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow update: if request.auth != null && (request.auth.uid == userId || isAdmin());
-    }
-
-    match /bookings/{bookingId} {
-      allow read: if request.auth != null &&
-        (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if request.auth != null;
-      allow update: if request.auth != null &&
-        (resource.data.userId == request.auth.uid || isAdmin());
-    }
-
-    match /notifications/{notifId} {
-      allow read, write: if isAdmin();
-    }
-
-    match /inquiries/{inquiryId} {
-      allow create: if true;
-      allow read: if isAdmin();
-    }
-
-    match /founders/{founderId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /testimonials/{testimonialId} {
+    match /settings/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
@@ -65,9 +63,78 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /pageHeroImages/{imageId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /founders/{founderId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /pageViews/{viewId} {
+      allow create: if isValidPageView();
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn() &&
+        (
+          request.auth.uid == userId ||
+          isAdmin()
+        );
+
+      allow create: if isSignedIn() &&
+        request.auth.uid == userId &&
+        (
+          !request.resource.data.keys().hasAny(["role"]) ||
+          request.resource.data.role == "user"
+        );
+
+      allow update: if isSignedIn() &&
+        (
+          isAdmin() ||
+          (request.auth.uid == userId && userIsNotChangingRole())
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    match /bookings/{bookingId} {
+      allow create: if isSignedIn();
+
+      allow read: if isSignedIn() &&
+        (
+          resource.data.userId == request.auth.uid ||
+          isAdmin()
+        );
+
+      allow update: if isSignedIn() &&
+        (
+          resource.data.userId == request.auth.uid ||
+          isAdmin()
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    match /notifications/{notifId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /inquiries/{inquiryId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
     match /revenue/{dateId} {
       allow read, write: if isAdmin();
     }
   }
 }
-

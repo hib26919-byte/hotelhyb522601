@@ -1,6 +1,7 @@
-import { doc, updateDoc } from "firebase/firestore";
+import { deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import { Trash2 } from "lucide-react";
 import { db } from "../utils/firebase";
 import { formatDate } from "../utils/dateHelpers";
 import { useFirestoreCollection } from "../hooks/useFirestore";
@@ -34,6 +35,17 @@ const AdminUsers = () => {
     }
   };
 
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm("Delete this user profile from Firestore?")) return;
+
+    try {
+      await deleteDoc(doc(db, "users", userId));
+      toast.success("User profile deleted.");
+    } catch (error) {
+      toast.error(error.message || "Unable to delete user profile.");
+    }
+  };
+
   return (
     <div className="admin-stack">
       <section className="admin-card">
@@ -50,6 +62,7 @@ const AdminUsers = () => {
                 <th>Role</th>
                 <th>Joined</th>
                 <th>Bookings</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -66,11 +79,16 @@ const AdminUsers = () => {
                   </td>
                   <td>{formatDate(user.createdAt)}</td>
                   <td>{user.bookingCount || 0}</td>
+                  <td>
+                    <button type="button" className="btn btn-ghost" onClick={() => handleDeleteUser(user.id)}>
+                      <Trash2 size={14} /> Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
               {!filteredUsers.length && (
                 <tr>
-                  <td colSpan="6">No users found.</td>
+                  <td colSpan="7">No users found.</td>
                 </tr>
               )}
             </tbody>
@@ -82,4 +100,3 @@ const AdminUsers = () => {
 };
 
 export default AdminUsers;
-

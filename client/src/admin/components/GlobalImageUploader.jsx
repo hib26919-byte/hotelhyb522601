@@ -1,12 +1,13 @@
 import React, { useState, useRef } from "react";
 import { UploadCloud, X, Image as ImageIcon, CheckCircle, AlertCircle, Loader } from "lucide-react";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "../../utils/firebase";
+import { uploadMultipleToImgBB } from "../../utils/imgbb";
 
 const GlobalImageUploader = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [files, setFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
+  const [uploadedUrls, setUploadedUrls] = useState([]);
   const [toast, setToast] = useState(null); // { message, type: 'success' | 'error' | 'warning' | 'info' }
   const fileInputRef = useRef(null);
 
@@ -42,6 +43,7 @@ const GlobalImageUploader = () => {
     }
 
     setFiles(newFiles);
+    setUploadedUrls([]);
   };
 
   const removeFile = (index) => {
@@ -51,24 +53,30 @@ const GlobalImageUploader = () => {
   const handleUpload = async () => {
     if (files.length === 0) return;
     setIsUploading(true);
-    showToast(`Uploading ${files.length} image(s)...`, "info");
+    setUploadStatus("Compressing selected images...");
+    showToast(`Uploading ${files.length} compressed image(s)...`, "info");
 
     try {
-      const uploadPromises = files.map(async (file) => {
-        const storageRef = ref(storage, `admin_uploads/${Date.now()}_${file.name}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        return await getDownloadURL(snapshot.ref);
+      const uploads = await uploadMultipleToImgBB(files, {
+        preset: "default",
+        onProgress: ({ current, total, stage, compression }) => {
+          setUploadStatus(
+            stage === "uploaded"
+              ? `Uploaded ${current}/${total}${compression?.sizeLabel ? ` (${compression.sizeLabel})` : ""}`
+              : `Compressing ${current}/${total}`,
+          );
+        },
       });
 
-      await Promise.all(uploadPromises);
-      showToast("Upload complete! Images successfully stored without duplicates.", "success");
+      setUploadedUrls(uploads.map((upload) => upload.url));
+      showToast("Upload complete! Images compressed and uploaded.", "success");
       setFiles([]);
-      setTimeout(() => setIsOpen(false), 2000);
     } catch (error) {
       console.error("Upload error:", error);
       showToast("Failed to upload images. Please try again.", "error");
     } finally {
       setIsUploading(false);
+      setUploadStatus("");
     }
   };
 
@@ -139,7 +147,7 @@ const GlobalImageUploader = () => {
           >
             <ImageIcon size={32} color="#c9a84c" style={{ margin: "0 auto 0.5rem" }} />
             <div style={{ fontSize: "0.8rem", color: "#1a1a1a", fontWeight: 500 }}>Click to select images</div>
-            <div style={{ fontSize: "0.65rem", color: "#8f8579", marginTop: 4 }}>Up to 5 images (PNG, JPG, WEBP)</div>
+            <div style={{ fontSize: "0.65rem", color: "#8f8579", marginTop: 4 }}>Up to 5 images. Auto-compressed near 500 KB.</div>
             <input 
               type="file" multiple accept="image/*" 
               ref={fileInputRef} onChange={handleFileSelect}
@@ -190,6 +198,25 @@ const GlobalImageUploader = () => {
               >
                 {isUploading ? "Uploading Securely..." : "Upload Images"}
               </button>
+              {isUploading && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: "0.75rem", color: "#c9a84c", fontSize: "0.76rem" }}>
+                  <Loader size={14} className="spin" />
+                  {uploadStatus || "Uploading..."}
+                </div>
+              )}
+            </div>
+          )}
+
+          {uploadedUrls.length > 0 && (
+            <div style={{ marginTop: "1rem", display: "grid", gap: "0.4rem" }}>
+              <div style={{ fontSize: "0.7rem", color: "#8f8579", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Uploaded URLs
+              </div>
+              {uploadedUrls.map((url) => (
+                <a key={url} href={url} target="_blank" rel="noreferrer" style={{ fontSize: "0.72rem", color: "#7b1a1a", overflowWrap: "anywhere" }}>
+                  {url}
+                </a>
+              ))}
             </div>
           )}
         </div>

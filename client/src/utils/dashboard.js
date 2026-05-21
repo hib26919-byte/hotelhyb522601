@@ -24,11 +24,13 @@ export const downloadCsv = (filename, rows) => {
 };
 
 /* ── Build dashboard analytics ── */
-export const buildDashboardData = (bookings = [], rooms = [], users = []) => {
+export const buildDashboardData = (bookings = [], rooms = [], users = [], pageViews = []) => {
   const now = new Date();
   const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+  const todayKey = format(now, "yyyy-MM-dd");
+  const yesterdayKey = format(subDays(now, 1), "yyyy-MM-dd");
 
   const thisMonthBookings = bookings.filter((b) => {
     const d = normalizeDate(b.createdAt);
@@ -60,6 +62,14 @@ export const buildDashboardData = (bookings = [], rooms = [], users = []) => {
     ? Math.round((todayBookings.length / totalRoomsInventory) * 100)
     : 0;
 
+  const thisMonthPageViews = pageViews.filter((view) => normalizeDate(view.createdAt) >= thisMonthStart);
+  const todayPageViews = pageViews.filter((view) => (view.dateKey || format(normalizeDate(view.createdAt), "yyyy-MM-dd")) === todayKey);
+  const yesterdayPageViews = pageViews.filter((view) => (view.dateKey || format(normalizeDate(view.createdAt), "yyyy-MM-dd")) === yesterdayKey);
+  const pageViewTrend = yesterdayPageViews.length
+    ? Math.round(((todayPageViews.length - yesterdayPageViews.length) / yesterdayPageViews.length) * 100)
+    : 0;
+  const uniqueVisitors = new Set(thisMonthPageViews.map((view) => view.visitorId).filter(Boolean)).size;
+
   const kpis = [
     {
       label: "Revenue (This Month)",
@@ -75,6 +85,11 @@ export const buildDashboardData = (bookings = [], rooms = [], users = []) => {
       label: "Total Users",
       value: users.length,
       trend: 0,
+    },
+    {
+      label: "Page Views (Today)",
+      value: todayPageViews.length,
+      trend: pageViewTrend,
     },
   ];
 
@@ -121,6 +136,41 @@ export const buildDashboardData = (bookings = [], rooms = [], users = []) => {
       .reduce((s, b) => s + (b.totalAmount || 0), 0),
   }));
 
+  const dailyPageViews = Array.from({ length: 14 }, (_, i) => {
+    const day = subDays(now, 13 - i);
+    const key = format(day, "yyyy-MM-dd");
+    return {
+      date: format(day, "MMM dd"),
+      views: pageViews.filter((view) => (view.dateKey || format(normalizeDate(view.createdAt), "yyyy-MM-dd")) === key).length,
+      visitors: new Set(
+        pageViews
+          .filter((view) => (view.dateKey || format(normalizeDate(view.createdAt), "yyyy-MM-dd")) === key)
+          .map((view) => view.visitorId)
+          .filter(Boolean),
+      ).size,
+    };
+  });
+
+  const popularPages = Object.values(
+    pageViews.reduce((acc, view) => {
+      const path = view.path || "/";
+      if (!acc[path]) {
+        acc[path] = {
+          path,
+          page: view.page || path,
+          views: 0,
+          visitors: new Set(),
+        };
+      }
+      acc[path].views += 1;
+      if (view.visitorId) acc[path].visitors.add(view.visitorId);
+      return acc;
+    }, {}),
+  )
+    .map((page) => ({ ...page, visitors: page.visitors.size }))
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 6);
+
   // Weekly heatmap (7 days x 4 time slots)
   const weeklyHeatmap = Array.from({ length: 4 }, (_, slot) =>
     Array.from({ length: 7 }, (_, day) => {
@@ -139,5 +189,9 @@ export const buildDashboardData = (bookings = [], rooms = [], users = []) => {
     categoryRevenueData,
     occupancyRate,
     weeklyHeatmap,
+    dailyPageViews,
+    popularPages,
+    uniqueVisitors,
+    pageViewsThisMonth: thisMonthPageViews.length,
   };
 };

@@ -1769,6 +1769,69 @@ textarea {
   text-align: center;
 }
 
+.upload-zone.is-active {
+  border-color: rgba(201, 168, 76, 0.7);
+  background: rgba(201, 168, 76, 0.06);
+}
+
+.admin-upload-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #9b7a1c;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.admin-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid rgba(201, 168, 76, 0.25);
+  border-top-color: var(--color-gold);
+  animation: adminSpin 0.75s linear infinite;
+}
+
+.admin-card p,
+.upload-zone p {
+  color: #5a5a5a;
+}
+
+.admin-card--manual-entry {
+  border-color: rgba(115, 217, 143, 0.35);
+  background: linear-gradient(180deg, #ffffff, #fbfff9);
+}
+
+.data-table th {
+  color: #6f655b;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.data-table small {
+  display: block;
+  color: #8f8579;
+  margin-top: 0.2rem;
+  max-width: 220px;
+  overflow-wrap: anywhere;
+}
+
+.table-actions .btn {
+  min-height: 36px;
+  padding: 0.45rem 0.7rem;
+  border-radius: 12px;
+  font-size: 0.78rem;
+}
+
+.admin-toolbar > input,
+.admin-toolbar > select {
+  flex: 1 1 180px;
+  min-width: 180px;
+}
+
 .checkbox-grid {
   display: flex;
   flex-wrap: wrap;
@@ -1867,6 +1930,10 @@ textarea {
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+@keyframes adminSpin {
+  to { transform: rotate(360deg); }
 }
 
 @media (max-width: 1180px) {

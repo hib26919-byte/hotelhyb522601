@@ -2,12 +2,11 @@ import {
   addDoc, collection, deleteDoc, doc,
   serverTimestamp, setDoc,
 } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { useEffect, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
-import { Trash2, Upload, Save, Plus, Image, Video, Eye, EyeOff } from "lucide-react";
-import { db, storage } from "../utils/firebase";
+import { Trash2, Upload, Save, Plus, Image, Eye, EyeOff } from "lucide-react";
+import { db } from "../utils/firebase";
 import { uploadMultipleToImgBB } from "../utils/imgbb";
 import { useFirestoreCollection } from "../hooks/useFirestore";
 import { ROOM_CATEGORIES } from "../utils/siteData";
@@ -37,12 +36,16 @@ const EMPTY_ROOM = {
 };
 
 const AdminRooms = () => {
-  const { data: rooms } = useFirestoreCollection("rooms", { fallbackData: ROOM_CATEGORIES });
+  const { data: rooms } = useFirestoreCollection("rooms", {
+    fallbackData: ROOM_CATEGORIES,
+    realtime: true,
+  });
   const [selectedId, setSelectedId] = useState("");
   const [form, setForm] = useState(EMPTY_ROOM);
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
   const [saving, setSaving] = useState(false);
 
   const selectedRoom = useMemo(
@@ -65,26 +68,39 @@ const AdminRooms = () => {
     accept: { "image/*": [] },
     maxFiles: 10,
     onDrop: acceptedFiles => {
-      setImageFiles(prev => [...prev, ...acceptedFiles]);
-      setImagePreviews(prev => [...prev, ...acceptedFiles.map(f => URL.createObjectURL(f))]);
+      setImageFiles(prev => [...prev, ...acceptedFiles].slice(0, 10));
+      setImagePreviews(prev => [...prev, ...acceptedFiles.map(f => URL.createObjectURL(f))].slice(0, 10));
     },
   });
 
   const handleSave = async () => {
+    if (!form.name.trim()) {
+      toast.error("Please enter a room display name.");
+      return;
+    }
+
     setSaving(true);
     try {
       let uploadedImages = form.images || [];
 
-      // Upload new images via ImgBB
       if (imageFiles.length) {
         setUploading(true);
-        const results = await uploadMultipleToImgBB(imageFiles);
+        setUploadStatus("Compressing room images...");
+        const results = await uploadMultipleToImgBB(imageFiles, {
+          preset: "room",
+          onProgress: ({ current, total, stage, compression }) => {
+            const label = stage === "uploaded"
+              ? `Uploaded ${current}/${total}${compression?.sizeLabel ? ` (${compression.sizeLabel})` : ""}`
+              : `Compressing ${current}/${total}`;
+            setUploadStatus(label);
+          },
+        });
         uploadedImages = [...uploadedImages, ...results.map(r => r.url)];
-        setUploading(false);
       }
 
+      const { id, ...roomForm } = form;
       const payload = {
-        ...form,
+        ...roomForm,
         images: uploadedImages,
         singlePrice: Number(form.singlePrice),
         doublePrice: Number(form.doublePrice),
@@ -102,12 +118,15 @@ const AdminRooms = () => {
         toast.success("Room created successfully.");
       }
 
+      setForm(prev => ({ ...prev, images: uploadedImages }));
       setImageFiles([]);
       setImagePreviews([]);
     } catch (err) {
       toast.error(err.message || "Save failed.");
     } finally {
       setSaving(false);
+      setUploading(false);
+      setUploadStatus("");
     }
   };
 
@@ -172,13 +191,13 @@ const AdminRooms = () => {
             padding: "1.2rem", borderRadius: 22,
             border: !selectedId ? "2px solid rgba(115,217,143,0.6)" : "1px solid rgba(201,168,76,0.2)",
             background: !selectedId ? "rgba(115,217,143,0.08)" : "rgba(255,255,255,0.03)",
-            color: "#faf8f5", cursor: "pointer", textAlign: "left",
+            color: "#1a1a1a", cursor: "pointer", textAlign: "left",
             display: "flex", flexDirection: "column", gap: 6,
           }}
         >
           <Plus size={18} color="#73d98f" />
           <strong>New Room</strong>
-          <small style={{ color: "rgba(250,248,245,0.5)", fontSize: "0.75rem" }}>Create from scratch</small>
+          <small style={{ color: "#8f8579", fontSize: "0.75rem" }}>Create from scratch</small>
         </button>
         {rooms.map(room => (
           <button
@@ -189,7 +208,7 @@ const AdminRooms = () => {
               padding: "1.2rem", borderRadius: 22,
               border: selectedId === room.id ? "2px solid rgba(201,168,76,0.6)" : "1px solid rgba(201,168,76,0.2)",
               background: selectedId === room.id ? "rgba(201,168,76,0.1)" : "rgba(255,255,255,0.03)",
-              color: "#faf8f5", cursor: "pointer", textAlign: "left",
+              color: "#1a1a1a", cursor: "pointer", textAlign: "left",
               display: "flex", flexDirection: "column", gap: 6,
               transition: "all 0.3s ease",
             }}
@@ -203,7 +222,7 @@ const AdminRooms = () => {
                 : <EyeOff size={14} color="#ff8f8f" />}
             </div>
             <strong style={{ fontFamily: "'Playfair Display', serif" }}>{room.name || room.category}</strong>
-            <small style={{ color: "rgba(250,248,245,0.5)", fontSize: "0.75rem" }}>
+            <small style={{ color: "#8f8579", fontSize: "0.75rem" }}>
               {room.totalRooms} rooms · ₹{room.singlePrice?.toLocaleString("en-IN")}
             </small>
             {room.images?.length > 0 && (
@@ -284,7 +303,7 @@ const AdminRooms = () => {
 
           {/* Amenities */}
           <div>
-            <strong style={{ fontSize: "0.85rem", color: "rgba(250,248,245,0.7)", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "0.75rem" }}>
+            <strong style={{ fontSize: "0.85rem", color: "#5a5a5a", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "0.75rem" }}>
               Amenities
             </strong>
             <div className="checkbox-grid">
@@ -332,12 +351,13 @@ const AdminRooms = () => {
               <strong style={{ display: "block", marginBottom: 4 }}>
                 {isDragActive ? "Drop images here!" : "Drag & drop images"}
               </strong>
-              <small style={{ color: "rgba(250,248,245,0.5)" }}>
+              <small style={{ color: "#8f8579" }}>
                 or click to browse · up to 10 images · JPG, PNG, WEBP
               </small>
               {uploading && (
-                <div style={{ marginTop: "0.75rem", fontSize: "0.82rem", color: "#c9a84c" }}>
-                  ⏳ Uploading to ImgBB...
+                <div className="admin-upload-state" style={{ marginTop: "0.75rem" }}>
+                  <span className="admin-spinner" />
+                  {uploadStatus || "Uploading compressed images..."}
                 </div>
               )}
             </div>
@@ -373,7 +393,7 @@ const AdminRooms = () => {
             {/* Existing images */}
             {form.images?.length > 0 && (
               <div style={{ marginTop: "1rem" }}>
-                <small style={{ color: "rgba(250,248,245,0.55)", display: "block", marginBottom: "0.5rem" }}>
+                <small style={{ color: "#8f8579", display: "block", marginBottom: "0.5rem" }}>
                   Current images ({form.images.length})
                 </small>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem" }}>

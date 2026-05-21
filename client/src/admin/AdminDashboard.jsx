@@ -9,7 +9,7 @@ import { buildDashboardData } from "../utils/dashboard";
 import { formatCurrency, formatDate, normalizeDate } from "../utils/dateHelpers";
 import { ROOM_CATEGORIES } from "../utils/siteData";
 import { useNotificationContext } from "../context/NotificationContext";
-import { TrendingUp, TrendingDown, Users, CreditCard, Activity, Calendar } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, CreditCard, Activity, Calendar, Eye } from "lucide-react";
 import GuestGeographyMap from "./components/GuestGeographyMap";
 import BookingHeatmap from "./components/BookingHeatmap";
 
@@ -98,21 +98,25 @@ const { data: users } = useFirestoreCollection("users", {
   fallbackData: [],
   realtime: true,
 });
+const { data: pageViews } = useFirestoreCollection("pageViews", {
+  fallbackData: [],
+  realtime: true,
+});
   const { notifications } = useNotificationContext();
-  const dashboard = buildDashboardData(bookings, rooms, users);
+  const dashboard = buildDashboardData(bookings, rooms, users, pageViews);
 
   const recentBookings = [...bookings]
     .sort((a, b) => normalizeDate(b.createdAt || 0) - normalizeDate(a.createdAt || 0))
     .slice(0, 8);
 
-  const kpiIcons = [CreditCard, Calendar, Users];
-  const kpiColors = ["#c9a84c", "#7b1a1a", "#73d98f"];
+  const kpiIcons = [CreditCard, Calendar, Users, Eye];
+  const kpiColors = ["#c9a84c", "#7b1a1a", "#73d98f", "#2860c5"];
 
   return (
     <div style={{ display: "grid", gap: "1.25rem" }}>
 
       {/* KPI row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem" }} className="admin-kpi-grid">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem" }} className="admin-kpi-grid">
         {dashboard.kpis.map((item, i) => (
           <KpiCard
             key={item.label}
@@ -123,6 +127,69 @@ const { data: users } = useFirestoreCollection("users", {
             color={kpiColors[i]}
           />
         ))}
+      </div>
+
+      {/* Page views */}
+      <div style={{ display: "grid", gridTemplateColumns: "1.25fr 0.75fr", gap: "1rem" }} className="admin-charts-row">
+        <ChartCard
+          title="Page Views"
+          subtitle={`${dashboard.pageViewsThisMonth} views this month · ${dashboard.uniqueVisitors} unique visitors`}
+        >
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={dashboard.dailyPageViews}>
+              <defs>
+                <linearGradient id="viewsFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#2860c5" stopOpacity={0.28} />
+                  <stop offset="95%" stopColor="#2860c5" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
+              <XAxis dataKey="date" stroke="rgba(0,0,0,0.15)" tick={{ fontSize: 10 }} />
+              <YAxis stroke="rgba(0,0,0,0.15)" tick={{ fontSize: 10 }} />
+              <Tooltip contentStyle={customTooltipStyle} />
+              <Area type="monotone" dataKey="views" name="Views" stroke="#2860c5" strokeWidth={2} fill="url(#viewsFill)" />
+              <Area type="monotone" dataKey="visitors" name="Visitors" stroke="#c9a84c" strokeWidth={1.5} fillOpacity={0} strokeDasharray="4 3" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title="Top Pages" subtitle="Most viewed public routes">
+          <div style={{ display: "grid", gap: "0.65rem" }}>
+            {dashboard.popularPages.map((page, index) => (
+              <div key={page.path} style={{
+                display: "grid",
+                gridTemplateColumns: "auto 1fr auto",
+                alignItems: "center",
+                gap: "0.75rem",
+                padding: "0.7rem 0",
+                borderBottom: "1px solid rgba(0,0,0,0.05)",
+              }}>
+                <span style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: 8,
+                  display: "grid",
+                  placeItems: "center",
+                  background: "rgba(201,168,76,0.12)",
+                  color: "#7b1a1a",
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                }}>{index + 1}</span>
+                <div style={{ minWidth: 0 }}>
+                  <strong style={{ display: "block", color: "#1a1a1a", fontSize: "0.86rem" }}>{page.page}</strong>
+                  <small style={{ color: "#8f8579" }}>{page.path}</small>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <strong style={{ color: "#2860c5" }}>{page.views}</strong>
+                  <small style={{ display: "block", color: "#8f8579" }}>{page.visitors} visitors</small>
+                </div>
+              </div>
+            ))}
+            {!dashboard.popularPages.length && (
+              <p style={{ color: "#8f8579", fontSize: "0.82rem" }}>Page views will appear after visitors browse the public site.</p>
+            )}
+          </div>
+        </ChartCard>
       </div>
 
       {/* Charts row 1 */}

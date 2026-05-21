@@ -1,10 +1,9 @@
-import { addDoc, collection, deleteDoc, doc, setDoc } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import { addDoc, collection, deleteDoc, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { Image, Upload, Trash2, Eye, EyeOff, Settings, Users, Star, Globe, Shield } from "lucide-react";
+import { Image, Upload, Trash2, Settings, Users, Star, Globe, Shield, Pencil, Save, X } from "lucide-react";
 import { useFirestoreCollection, useFirestoreDocument } from "../hooks/useFirestore";
-import { db, storage } from "../utils/firebase";
+import { db } from "../utils/firebase";
 import { uploadToImgBB } from "../utils/imgbb";
 import { DEFAULT_HERO_IMAGES, DEFAULT_SETTINGS, FOUNDERS, TESTIMONIALS } from "../utils/siteData";
 
@@ -18,29 +17,18 @@ const PAGE_HERO_SLOTS = [
   { key: "booking",  label: "Booking Page",  description: "Header banner for /booking", route: "/booking" },
 ];
 
-const uploadImage = async (file, useStorage = false, storagePath = "") => {
-  if (useStorage && storage) {
-    const storageRef = ref(storage, storagePath || `heroImages/${Date.now()}-${file.name}`);
-    const task = uploadBytesResumable(storageRef, file);
-    return new Promise((resolve, reject) => {
-      task.on("state_changed", null, reject, async () => {
-        const url = await getDownloadURL(task.snapshot.ref);
-        resolve(url);
-      });
-    });
-  }
-  const result = await uploadToImgBB(file);
-  return result.url;
-};
+const uploadImage = (file, preset = "default") => uploadToImgBB(file, { preset });
 
 const AdminSettings = () => {
   // ── ALL useState MUST come before any hook that uses their values ──
   const [activeTab, setActiveTab] = useState("general");
   const [uploading, setUploading] = useState({});
-  const [uploadProgress, setUploadProgress] = useState({});
   const [heroUrl, setHeroUrl] = useState("");
   const [testimonialForm, setTestimonialForm] = useState({ name: "", location: "", rating: 5, text: "" });
+  const [editingTestimonialId, setEditingTestimonialId] = useState("");
   const [founderForm, setFounderForm] = useState({ name: "", role: "", bio: "", image: "", linkedin: "" });
+  const [founderImageFile, setFounderImageFile] = useState(null);
+  const [editingFounderId, setEditingFounderId] = useState("");
   const [generalForm, setGeneralForm] = useState({
     maintenanceMode: false, festivalMode: false, activeBannerId: "",
     checkInTime: "2:00 PM", checkOutTime: "11:00 AM", gstPercentage: 12,
@@ -55,21 +43,25 @@ const AdminSettings = () => {
   const { data: heroImages } = useFirestoreCollection("heroImages", {
     fallbackData: DEFAULT_HERO_IMAGES,
     fallbackWhenEmpty: false,
+    realtime: true,
     enabled: activeTab === "hero" || activeTab === "general",
   });
   const { data: pageHeroes } = useFirestoreCollection("pageHeroImages", {
     fallbackData: [],
     fallbackWhenEmpty: false,
+    realtime: true,
     enabled: activeTab === "pages",
   });
   const { data: testimonials } = useFirestoreCollection("testimonials", {
     fallbackData: TESTIMONIALS,
     fallbackWhenEmpty: false,
+    realtime: true,
     enabled: activeTab === "content",
   });
   const { data: founders } = useFirestoreCollection("founders", {
     fallbackData: FOUNDERS,
     fallbackWhenEmpty: false,
+    realtime: true,
     enabled: activeTab === "founders",
   });
 
@@ -115,7 +107,13 @@ const AdminSettings = () => {
   const addHeroImage = async () => {
     if (!heroUrl.trim()) { toast.error("Enter a valid image URL."); return; }
     try {
-      await addDoc(collection(db, "heroImages"), { image: heroUrl, alt: "Hotel hero visual", order: heroImages.length });
+      await addDoc(collection(db, "heroImages"), {
+        image: heroUrl,
+        alt: "Hotel hero visual",
+        order: heroImages.length,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
       setHeroUrl("");
       toast.success("Hero image added.");
     } catch (error) {
@@ -127,13 +125,15 @@ const AdminSettings = () => {
     if (!file) return;
     try {
       setUploading((u) => ({ ...u, homeHero: true }));
-      const url = await uploadImage(file, true, `heroImages/${Date.now()}-${file.name}`);
+      const upload = await uploadImage(file, "hero");
       await addDoc(collection(db, "heroImages"), {
-        image: url,
+        image: upload.url,
         alt: file.name,
         order: heroImages.length,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
-      toast.success("Hero image uploaded.");
+      toast.success(`Hero image uploaded${upload.compression?.sizeLabel ? ` (${upload.compression.sizeLabel})` : ""}.`);
     } catch (error) {
       console.error(error);
       toast.error(error.message || "Upload failed.");
@@ -158,17 +158,17 @@ const AdminSettings = () => {
     const existing = getPageHero(pageKey);
     try {
       setUploading((u) => ({ ...u, [pageKey]: true }));
-      const url = await uploadImage(file, true, `pageHeroes/${pageKey}-${Date.now()}`);
+      const upload = await uploadImage(file, "banner");
       if (existing) {
         await setDoc(doc(db, "pageHeroImages", existing.id), {
-          page: pageKey, imageUrl: url, updatedAt: new Date(),
+          page: pageKey, imageUrl: upload.url, updatedAt: serverTimestamp(),
         }, { merge: true });
       } else {
         await addDoc(collection(db, "pageHeroImages"), {
-          page: pageKey, imageUrl: url, createdAt: new Date(),
+          page: pageKey, imageUrl: upload.url, createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
         });
       }
-      toast.success(`${pageKey} hero image updated.`);
+      toast.success(`${pageKey} hero image updated${upload.compression?.sizeLabel ? ` (${upload.compression.sizeLabel})` : ""}.`);
     } catch (error) {
       console.error(error);
       toast.error(error.message || "Upload failed.");
@@ -181,9 +181,9 @@ const AdminSettings = () => {
     const existing = getPageHero(pageKey);
     try {
       if (existing) {
-        await setDoc(doc(db, "pageHeroImages", existing.id), { page: pageKey, imageUrl: url, updatedAt: new Date() }, { merge: true });
+        await setDoc(doc(db, "pageHeroImages", existing.id), { page: pageKey, imageUrl: url, updatedAt: serverTimestamp() }, { merge: true });
       } else {
-        await addDoc(collection(db, "pageHeroImages"), { page: pageKey, imageUrl: url, createdAt: new Date() });
+        await addDoc(collection(db, "pageHeroImages"), { page: pageKey, imageUrl: url, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
       }
       toast.success(`${pageKey} hero updated.`);
     } catch (error) {
@@ -202,27 +202,99 @@ const AdminSettings = () => {
     }
   };
 
+  const resetTestimonialForm = () => {
+    setEditingTestimonialId("");
+    setTestimonialForm({ name: "", location: "", rating: 5, text: "" });
+  };
+
+  const startTestimonialEdit = (item) => {
+    setEditingTestimonialId(item.id);
+    setTestimonialForm({
+      name: item.name || "",
+      location: item.location || "",
+      rating: Number(item.rating || 5),
+      text: item.text || "",
+    });
+  };
+
   const addTestimonial = async () => {
     try {
-      await addDoc(collection(db, "testimonials"), testimonialForm);
-      setTestimonialForm({ name: "", location: "", rating: 5, text: "" });
-      toast.success("Testimonial saved.");
+      const payload = {
+        ...testimonialForm,
+        rating: Number(testimonialForm.rating),
+        updatedAt: serverTimestamp(),
+      };
+
+      if (editingTestimonialId) {
+        await setDoc(doc(db, "testimonials", editingTestimonialId), payload, { merge: true });
+        toast.success("Testimonial updated.");
+      } else {
+        await addDoc(collection(db, "testimonials"), {
+          ...payload,
+          createdAt: serverTimestamp(),
+        });
+        toast.success("Testimonial saved.");
+      }
+      resetTestimonialForm();
     } catch (error) {
       toast.error(error.message || "Failed.");
     }
+  };
+
+  const resetFounderForm = () => {
+    setEditingFounderId("");
+    setFounderImageFile(null);
+    setFounderForm({ name: "", role: "", bio: "", image: "", linkedin: "" });
+  };
+
+  const startFounderEdit = (founder) => {
+    setEditingFounderId(founder.id);
+    setFounderImageFile(null);
+    setFounderForm({
+      name: founder.name || "",
+      role: founder.role || "",
+      bio: founder.bio || "",
+      image: founder.image || "",
+      linkedin: founder.linkedin || "",
+    });
   };
 
   const addFounder = async () => {
     try {
-      await addDoc(collection(db, "founders"), founderForm);
-      setFounderForm({ name: "", role: "", bio: "", image: "", linkedin: "" });
-      toast.success("Founder saved.");
+      setUploading((u) => ({ ...u, founder: Boolean(founderImageFile) }));
+      let image = founderForm.image;
+
+      if (founderImageFile) {
+        const upload = await uploadImage(founderImageFile, "default");
+        image = upload.url;
+      }
+
+      const payload = {
+        ...founderForm,
+        image,
+        updatedAt: serverTimestamp(),
+      };
+
+      if (editingFounderId) {
+        await setDoc(doc(db, "founders", editingFounderId), payload, { merge: true });
+        toast.success("Founder updated.");
+      } else {
+        await addDoc(collection(db, "founders"), {
+          ...payload,
+          createdAt: serverTimestamp(),
+        });
+        toast.success("Founder saved.");
+      }
+      resetFounderForm();
     } catch (error) {
       toast.error(error.message || "Failed.");
+    } finally {
+      setUploading((u) => ({ ...u, founder: false }));
     }
   };
 
   const removeItem = async (collectionName, id) => {
+    if (!window.confirm("Delete this item?")) return;
     try {
       await deleteDoc(doc(db, collectionName, id));
       toast.success("Removed.");
@@ -332,7 +404,7 @@ const AdminSettings = () => {
                   </div>
                   <div>
                     <div style={{ fontSize: "0.88rem", fontWeight: 600 }}>{label}</div>
-                    <div style={{ fontSize: "0.75rem", color: "rgba(250,248,245,0.5)", marginTop: 1 }}>{desc}</div>
+                    <div style={{ fontSize: "0.75rem", color: "#8f8579", marginTop: 1 }}>{desc}</div>
                   </div>
                 </label>
               ))}
@@ -382,9 +454,15 @@ const AdminSettings = () => {
               />
               <Upload size={28} color="#c9a84c" style={{ margin: "0 auto 0.6rem" }} />
               <strong>{uploading.homeHero ? "Uploading…" : "Click to upload hero image"}</strong>
-              <div style={{ fontSize: "0.78rem", color: "rgba(250,248,245,0.45)", marginTop: 4 }}>
+              <div style={{ fontSize: "0.78rem", color: "#8f8579", marginTop: 4 }}>
                 JPG, PNG, WEBP · Recommended 1920×1080
               </div>
+              {uploading.homeHero && (
+                <div className="admin-upload-state" style={{ marginTop: "0.75rem" }}>
+                  <span className="admin-spinner" />
+                  Compressing and uploading hero image...
+                </div>
+              )}
             </label>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "0.75rem" }}>
@@ -393,7 +471,7 @@ const AdminSettings = () => {
                 onChange={e => setHeroUrl(e.target.value)}
                 placeholder="Or paste an image URL…"
                 style={{
-                  background: "rgba(255,255,255,0.05)", color: "#faf8f5",
+                  background: "#ffffff", color: "#1a1a1a",
                   border: "1px solid rgba(201,168,76,0.18)", borderRadius: 16, padding: "0.85rem 1rem",
                 }}
               />
@@ -427,7 +505,7 @@ const AdminSettings = () => {
                   padding: "0.6rem 0.75rem",
                   display: "flex", justifyContent: "space-between", alignItems: "center",
                 }}>
-                  <span style={{ fontSize: "0.72rem", color: "rgba(250,248,245,0.7)" }}>
+                  <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.82)" }}>
                     Slide {idx + 1}
                   </span>
                   <button
@@ -474,12 +552,12 @@ const AdminSettings = () => {
                         padding: "0.2rem 0.6rem", borderRadius: 999,
                         background: existing ? "rgba(115,217,143,0.12)" : "rgba(255,255,255,0.06)",
                         border: `1px solid ${existing ? "rgba(115,217,143,0.35)" : "rgba(255,255,255,0.15)"}`,
-                        fontSize: "0.7rem", color: existing ? "#73d98f" : "rgba(250,248,245,0.5)",
+                        fontSize: "0.7rem", color: existing ? "#2ba150" : "#8f8579",
                       }}>
                         {existing ? "✓ Custom image set" : "Using default"}
                       </span>
                     </div>
-                    <span style={{ fontSize: "0.8rem", color: "rgba(250,248,245,0.5)" }}>
+                    <span style={{ fontSize: "0.8rem", color: "#8f8579" }}>
                       {description} · Route: <code style={{ color: "#c9a84c" }}>{route}</code>
                     </span>
                   </div>
@@ -556,7 +634,7 @@ const AdminSettings = () => {
                       <>
                         <Upload size={22} color="#c9a84c" />
                         <div style={{ fontSize: "0.82rem" }}>{existing ? "Upload replacement" : "Upload banner"}</div>
-                        <div style={{ fontSize: "0.72rem", color: "rgba(250,248,245,0.4)" }}>JPG, PNG, WEBP</div>
+                        <div style={{ fontSize: "0.72rem", color: "#8f8579" }}>JPG, PNG, WEBP</div>
                       </>
                     )}
                   </label>
@@ -589,8 +667,15 @@ const AdminSettings = () => {
             <label className="field-grid__full">Testimonial Text
               <textarea rows="4" value={testimonialForm.text} onChange={e => setTestimonialForm(p => ({ ...p, text: e.target.value }))} />
             </label>
-            <div className="field-grid__full">
-              <button type="button" className="btn btn-outline" onClick={addTestimonial}>Save Testimonial</button>
+            <div className="field-grid__full table-actions">
+              <button type="button" className="btn btn-outline" onClick={addTestimonial}>
+                <Save size={14} /> {editingTestimonialId ? "Update Testimonial" : "Save Testimonial"}
+              </button>
+              {editingTestimonialId && (
+                <button type="button" className="btn btn-ghost" onClick={resetTestimonialForm}>
+                  <X size={14} /> Cancel
+                </button>
+              )}
             </div>
           </div>
 
@@ -606,13 +691,18 @@ const AdminSettings = () => {
                   <strong>{item.name}</strong>
                   <small>{item.location} · "{item.text?.slice(0, 60)}…"</small>
                 </div>
-                <button type="button" className="btn btn-ghost" onClick={() => removeItem("testimonials", item.id)}>
-                  <Trash2 size={14} />
-                </button>
+                <div className="table-actions">
+                  <button type="button" className="btn btn-ghost" onClick={() => startTestimonialEdit(item)}>
+                    <Pencil size={14} /> Edit
+                  </button>
+                  <button type="button" className="btn btn-ghost" onClick={() => removeItem("testimonials", item.id)}>
+                    <Trash2 size={14} /> Delete
+                  </button>
+                </div>
               </article>
             ))}
             {!testimonials.length && (
-              <p style={{ color: "rgba(250,248,245,0.45)", fontSize: "0.85rem" }}>No testimonials yet.</p>
+              <p style={{ color: "#8f8579", fontSize: "0.85rem" }}>No testimonials yet.</p>
             )}
           </div>
         </section>
@@ -622,8 +712,15 @@ const AdminSettings = () => {
       {activeTab === "founders" && (
         <section className="admin-card">
           <div className="admin-card__header">
-            <h3>Founders</h3>
-            <span>Leadership team shown on the About page</span>
+            <div>
+              <h3>{editingFounderId ? "Edit Founder" : "Founders"}</h3>
+              <span>Leadership team shown on the About page</span>
+            </div>
+            {editingFounderId && (
+              <button type="button" className="btn btn-outline" onClick={resetFounderForm}>
+                <X size={14} /> Cancel Edit
+              </button>
+            )}
           </div>
           <div className="field-grid">
             <label>Name
@@ -635,6 +732,16 @@ const AdminSettings = () => {
             <label>Image URL
               <input value={founderForm.image} onChange={e => setFounderForm(p => ({ ...p, image: e.target.value }))} placeholder="https://…" />
             </label>
+            <label>Upload Image
+              <input type="file" accept="image/*" onChange={e => setFounderImageFile(e.target.files?.[0] || null)} disabled={uploading.founder} />
+              <small>{founderImageFile ? `${founderImageFile.name} selected` : "Optional. Uploaded image replaces the URL above."}</small>
+              {uploading.founder && (
+                <div className="admin-upload-state">
+                  <span className="admin-spinner" />
+                  Compressing and uploading founder image...
+                </div>
+              )}
+            </label>
             <label>LinkedIn
               <input value={founderForm.linkedin} onChange={e => setFounderForm(p => ({ ...p, linkedin: e.target.value }))} placeholder="https://linkedin.com/in/…" />
             </label>
@@ -642,7 +749,9 @@ const AdminSettings = () => {
               <textarea rows="4" value={founderForm.bio} onChange={e => setFounderForm(p => ({ ...p, bio: e.target.value }))} />
             </label>
             <div className="field-grid__full">
-              <button type="button" className="btn btn-gold" onClick={addFounder}>Add Founder</button>
+              <button type="button" className="btn btn-gold" onClick={addFounder} disabled={uploading.founder}>
+                <Save size={14} /> {editingFounderId ? "Update Founder" : "Add Founder"}
+              </button>
             </div>
           </div>
 
@@ -654,9 +763,14 @@ const AdminSettings = () => {
                   <strong>{founder.name}</strong>
                   <small>{founder.role}</small>
                 </div>
-                <button type="button" className="btn btn-outline" onClick={() => removeItem("founders", founder.id)}>
-                  <Trash2 size={14} /> Remove
-                </button>
+                <div className="table-actions">
+                  <button type="button" className="btn btn-outline" onClick={() => startFounderEdit(founder)}>
+                    <Pencil size={14} /> Edit
+                  </button>
+                  <button type="button" className="btn btn-ghost" onClick={() => removeItem("founders", founder.id)}>
+                    <Trash2 size={14} /> Delete
+                  </button>
+                </div>
               </article>
             ))}
           </div>
@@ -682,7 +796,7 @@ const PageHeroUrlInput = ({ pageKey, existing, onSave }) => {
         onChange={e => setUrl(e.target.value)}
         placeholder="Or paste an image URL…"
         style={{
-          background: "rgba(255,255,255,0.05)", color: "#faf8f5",
+          background: "#ffffff", color: "#1a1a1a",
           border: "1px solid rgba(201,168,76,0.18)", borderRadius: 14,
           padding: "0.7rem 1rem", fontSize: "0.85rem",
         }}

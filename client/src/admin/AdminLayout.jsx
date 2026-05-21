@@ -167,7 +167,7 @@ const AdminLayout = () => {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: "0.85rem", fontWeight: isActive ? 600 : 400 }}>{label}</div>
                       {!isActive && (
-                        <div style={{ fontSize: "0.67rem", color: "rgba(250,248,245,0.35)", marginTop: 1 }}>{desc}</div>
+                        <div style={{ fontSize: "0.67rem", color: "#9b9288", marginTop: 1 }}>{desc}</div>
                       )}
                     </div>
                     {hasNotif && (
