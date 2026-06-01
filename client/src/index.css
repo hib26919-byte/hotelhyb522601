@@ -2012,7 +2012,7 @@ textarea {
   .profile-hero,
   .footer__grid,
   .footer__bottom {
-    width: min(100vw - 1.5rem, var(--container));
+    width: min(calc(100vw - 1.5rem), var(--container));
   }
 
   .hero-slider__controls {
@@ -2075,7 +2075,7 @@ textarea {
   }
 
   .chatbot__window {
-    width: min(100vw - 1rem, 420px);
+    width: min(calc(100vw - 1rem), 420px);
     height: min(74vh, 520px);
   }
 
@@ -3191,6 +3191,34 @@ textarea {
   background: #d03636;
 }
 
+.room-card__availability.is-loading {
+  color: #8f8579;
+}
+
+.room-card__availability.is-loading i {
+  background: #9ca3af;
+}
+
+.room-card--full {
+  opacity: 0.88;
+}
+
+.room-card--full .room-card__media {
+  filter: grayscale(20%);
+}
+
+.room-card__fully-booked-note {
+  color: #aa2c2c;
+  font-size: 0.75rem;
+  font-style: italic;
+  line-height: 1.45;
+}
+
+.room-card__actions .btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
 .room-card--editorial .room-card__actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3385,6 +3413,24 @@ textarea {
 }
 
 .booking-availability.is-full {
+  background: rgba(239,68,68,0.08);
+  border-color: rgba(239,68,68,0.22);
+  color: #aa2c2c;
+}
+
+.booking-availability.is-limited {
+  background: rgba(245,158,11,0.12);
+  border-color: rgba(245,158,11,0.3);
+  color: #9b6200;
+}
+
+.booking-availability.is-loading {
+  background: rgba(156,163,175,0.1);
+  border-color: rgba(156,163,175,0.26);
+  color: #6b7280;
+}
+
+.booking-availability.is-error {
   background: rgba(239,68,68,0.08);
   border-color: rgba(239,68,68,0.22);
   color: #aa2c2c;
@@ -4039,6 +4085,18 @@ textarea {
   flex: 0 0 auto;
 }
 
+.availability-today-card__ring {
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+}
+
+.availability-today-card__ring b {
+  position: absolute;
+  font-size: 0.68rem;
+}
+
 .availability-today-card circle {
   fill: none;
   stroke-width: 4;
@@ -4056,6 +4114,37 @@ textarea {
 .availability-today-card span {
   color: #8f8579;
   font-size: 0.78rem;
+}
+
+.availability-today-card__chip {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 0.35rem;
+  padding: 0.22rem 0.48rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.availability-today-card__chip.is-open {
+  background: rgba(43,161,80,0.12);
+  color: #1f7c2d;
+}
+
+.availability-today-card__chip.is-limited {
+  background: rgba(245,158,11,0.16);
+  color: #9b6200;
+}
+
+.availability-today-card__chip.is-full {
+  background: rgba(208,54,54,0.12);
+  color: #aa2c2c;
+}
+
+.availability-today-card__chip.is-error {
+  background: rgba(208,54,54,0.12);
+  color: #aa2c2c;
 }
 
 @keyframes heroKenBurns {

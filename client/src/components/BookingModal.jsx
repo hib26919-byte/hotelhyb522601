@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   serverTimestamp,
   Timestamp,
-  where,
 } from "firebase/firestore";
 import {
   CheckCircle2,
@@ -19,10 +18,7 @@ import useAuth from "../hooks/useAuth";
 import usePayU from "../hooks/usePayU";
 import { useBooking } from "../context/BookingContext";
 import {
-  buildAvailabilityCalendarFromLocks,
-  calculateAvailabilityFromLocks,
   getAvailabilityLabel,
-  getRoomTotal,
   isRangeSelectable,
 } from "../utils/availability";
 import {
@@ -30,13 +26,14 @@ import {
   formatDate,
   getNightsBetween,
 } from "../utils/dateHelpers";
-import { useFirestoreCollection, useFirestoreDocumentRealtime } from "../hooks/useFirestore";
+import { useFirestoreDocumentRealtime } from "../hooks/useFirestore";
 import { DEFAULT_GST_SETTINGS, getBookingPricing } from "../utils/gst";
 import {
   createBookingWithInventoryLock,
   generateBookingId,
   releaseBookingInventoryLock,
 } from "../utils/bookingTransactions";
+import { useRoomAvailability } from "../hooks/useRoomAvailability";
 import BookingDateTabs from "./BookingDateTabs";
 
 const stepLabels = ["Dates", "Details", "Payment", "Confirmed"];
@@ -57,16 +54,17 @@ const BookingModal = () => {
     userPhone: "",
   });
 
-  const roomConstraints = useMemo(
-    () => (selectedRoom?.category ? [where("category", "==", selectedRoom.category.toLowerCase())] : []),
-    [selectedRoom?.category],
+  const {
+    calendar: availabilityCalendar,
+    loading: availabilityLoading,
+    error: availabilityError,
+    ...rangeAvailability
+  } = useRoomAvailability(
+    selectedRoom?.category,
+    formValues.checkIn,
+    formValues.checkOut,
+    { enabled: Boolean(selectedRoom && isOpen) },
   );
-  const { data: availabilityLocks, loading: availabilityLoading } = useFirestoreCollection("availabilityLocks", {
-    fallbackData: [],
-    queryConstraints: roomConstraints,
-    enabled: Boolean(selectedRoom && isOpen),
-    realtime: true,
-  });
   const { data: gstSettings } = useFirestoreDocumentRealtime("settings", "gst", {
     fallbackData: DEFAULT_GST_SETTINGS,
     enabled: isOpen,
@@ -102,29 +100,6 @@ const BookingModal = () => {
     }
   }, [isOpen, selectedRoom?.preferredOccupancy]);
 
-  const totalRooms = getRoomTotal(selectedRoom);
-  const availabilityCalendar = useMemo(
-    () =>
-      buildAvailabilityCalendarFromLocks({
-        locks: availabilityLocks,
-        category: selectedRoom?.category,
-        totalRooms,
-      }),
-    [availabilityLocks, selectedRoom?.category, totalRooms],
-  );
-
-  const rangeAvailability = useMemo(
-    () =>
-      calculateAvailabilityFromLocks({
-        locks: availabilityLocks,
-        category: selectedRoom?.category,
-        checkIn: formValues.checkIn,
-        checkOut: formValues.checkOut,
-        totalRooms,
-      }),
-    [availabilityLocks, formValues.checkIn, formValues.checkOut, selectedRoom?.category, totalRooms],
-  );
-
   const nights = getNightsBetween(formValues.checkIn, formValues.checkOut);
   const pricing = useMemo(
     () =>
@@ -146,6 +121,8 @@ const BookingModal = () => {
   } = pricing;
   const isAvailable =
     Boolean(formValues.checkIn && formValues.checkOut) &&
+    !availabilityLoading &&
+    !availabilityError &&
     rangeAvailability.available > 0 &&
     isRangeSelectable({
       checkIn: formValues.checkIn,
@@ -164,6 +141,14 @@ const BookingModal = () => {
     if (step === 1) {
       if (!formValues.checkIn || !formValues.checkOut) {
         toast.error("Please select check-in and check-out dates.");
+        return;
+      }
+      if (availabilityLoading) {
+        toast.error("Live availability is still loading. Please try again in a moment.");
+        return;
+      }
+      if (availabilityError) {
+        toast.error("Live availability could not be verified. Please try again.");
         return;
       }
       if (!isAvailable) {
@@ -341,15 +326,31 @@ const BookingModal = () => {
               checkIn={formValues.checkIn}
               checkOut={formValues.checkOut}
               availabilityCalendar={availabilityCalendar}
+              availabilityLoading={availabilityLoading}
+              availabilityError={Boolean(availabilityError)}
               pricing={pricing}
               onChange={({ checkIn, checkOut }) =>
                 setFormValues((previous) => ({ ...previous, checkIn, checkOut }))
               }
               onConfirm={handleNext}
             />
-            <div className={`booking-availability ${isAvailable ? "is-open" : "is-full"}`}>
+            <div
+              className={`booking-availability ${
+                availabilityLoading
+                  ? "is-loading"
+                  : availabilityError
+                    ? "is-error"
+                  : rangeAvailability.isFull
+                    ? "is-full"
+                    : rangeAvailability.isLimited
+                      ? "is-limited"
+                      : "is-open"
+              }`}
+            >
               <span>
-                {availabilityLoading
+                {availabilityError
+                  ? "Unable to load live availability. Please try again."
+                  : availabilityLoading
                   ? "Checking live availability..."
                   : formValues.checkIn && formValues.checkOut
                     ? getAvailabilityLabel(rangeAvailability)

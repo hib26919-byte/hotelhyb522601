@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useBooking } from "../context/BookingContext";
 import { formatCurrency } from "../utils/dateHelpers";
+import { getTotalRooms } from "../utils/roomConfig";
 
 /* ─── icon map for amenity pills ─── */
 const AMENITY_ICONS = {
@@ -546,6 +547,7 @@ const MediaGallery = ({ images = [], videoUrl }) => {
 /* ─── Main Room Detail Modal ─── */
 const RoomDetailModal = ({ room, onClose }) => {
   const { openBooking } = useBooking();
+  const totalRooms = getTotalRooms(room?.category);
   const modalRef = useRef(null);
 
   useEffect(() => {
@@ -647,7 +649,7 @@ const RoomDetailModal = ({ room, onClose }) => {
                   <Star key={s} size={14} fill="#c9a84c" color="#c9a84c" />
                 ))}
                 <span style={{ fontSize: "0.82rem", color: "#8f8579", marginLeft: 4 }}>
-                  Premium Luxury · {room.totalRooms} Rooms Available
+                  Premium Luxury · {totalRooms} Rooms Available
                 </span>
               </div>
             </div>
@@ -707,7 +709,7 @@ const RoomDetailModal = ({ room, onClose }) => {
               display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.85rem",
             }}>
               {[
-                { label: "Total Rooms", value: room.totalRooms, icon: "🏨" },
+                { label: "Total Rooms", value: totalRooms, icon: "🏨" },
                 { label: "Max Guests", value: room.category === "suite" ? "4" : room.category === "premium" ? "3" : "2", icon: "👥" },
                 { label: "Status", value: room.isAvailable ? "Available" : "Unavailable", icon: room.isAvailable ? "✓" : "✗", color: room.isAvailable ? "#73d98f" : "#ff8f8f" },
               ].map(({ label, value, icon, color }) => (

@@ -8,7 +8,7 @@ const PageHero = ({
     <section className="page-hero">
       <img
         key={image}
-        src={`${image}?t=${Date.now()}`}
+        src={`${image}${image.includes("?") ? "&" : "?"}t=${Date.now()}`}
         alt={title}
         className="page-hero__image"
         loading="eager"

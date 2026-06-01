@@ -1,5 +1,4 @@
-import { useMemo, useState } from "react";
-import { where } from "firebase/firestore";
+import { useState } from "react";
 import {
   ArrowRight,
   Bell,
@@ -14,12 +13,11 @@ import {
   Wind,
 } from "lucide-react";
 import { useBooking } from "../context/BookingContext";
-import { useFirestoreCollection } from "../hooks/useFirestore";
 import {
-  calculateAvailabilityFromLocks,
-  getAvailabilityLabel,
-  getRoomTotal,
-} from "../utils/availability";
+  calculateAvailability,
+  getTotalRooms,
+  withRoomConfig,
+} from "../utils/roomConfig";
 import { formatCurrency } from "../utils/dateHelpers";
 import RoomSlider from "./RoomSlider";
 import RoomDetailModal from "./RoomDetailModal";
@@ -44,62 +42,59 @@ const getAmenityIcon = (amenity = "") => {
   return match?.icon || Circle;
 };
 
-const RoomCard = ({ room }) => {
+const RoomCard = ({ room, availabilityToday }) => {
   const { openBooking } = useBooking();
   const [showDetail, setShowDetail] = useState(false);
   const [occupancy, setOccupancy] = useState("single");
-
-  const lockConstraints = useMemo(
-    () => (room?.category ? [where("category", "==", room.category.toLowerCase())] : []),
-    [room?.category],
-  );
-  const { data: availabilityLocks } = useFirestoreCollection("availabilityLocks", {
-    fallbackData: [],
-    queryConstraints: lockConstraints,
-    enabled: Boolean(room?.category),
-    realtime: true,
-  });
-
-  const tonightAvailability = useMemo(() => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    return calculateAvailabilityFromLocks({
-      locks: availabilityLocks,
-      category: room.category,
-      checkIn: today,
-      checkOut: tomorrow,
-      totalRooms: getRoomTotal(room),
-    });
-  }, [availabilityLocks, room]);
-
-  const price = occupancy === "double" ? room.doublePrice : room.singlePrice;
+  const configuredRoom = withRoomConfig(room);
+  const tonightAvailability = availabilityToday || {
+    ...calculateAvailability(configuredRoom.category, 0),
+    loading: true,
+    error: null,
+  };
+  const isLoading = tonightAvailability.loading;
+  const hasAvailabilityError = Boolean(tonightAvailability.error);
+  const isFull = !isLoading && !hasAvailabilityError && tonightAvailability.isFull;
+  const price = occupancy === "double" ? configuredRoom.doublePrice : configuredRoom.singlePrice;
   const availabilityClass =
-    tonightAvailability.available <= 0
+    isLoading
+      ? "is-loading"
+      : hasAvailabilityError
+      ? "is-loading"
+      : isFull
       ? "is-full"
-      : tonightAvailability.available <= 3
+      : tonightAvailability.isLimited
         ? "is-limited"
         : "is-open";
+  const availabilityLabel = isLoading
+    ? "Checking today's availability..."
+    : hasAvailabilityError
+      ? "Availability unavailable"
+    : isFull
+      ? "Fully Booked Today"
+      : tonightAvailability.isLimited
+        ? `Only ${tonightAvailability.available} left today`
+        : `${tonightAvailability.available} rooms available today`;
 
   return (
     <>
-      <article className="room-card room-card--editorial reveal">
+      <article className={`room-card room-card--editorial reveal ${isFull ? "room-card--full" : ""}`}>
         <div className="room-card__media">
           <RoomSlider
-            images={room.images}
-            title={room.name}
+            images={configuredRoom.images}
+            title={configuredRoom.name}
             onClick={() => setShowDetail(true)}
             showGalleryOverlay
           />
           <span className="room-card__category">
-            {(room.category || "room").toUpperCase()}
+            {(configuredRoom.category || "room").toUpperCase()}
           </span>
         </div>
 
         <div className="room-card__content">
           <div className="room-card__ornament" />
-          <h3>{room.name}</h3>
-          <p className="room-card__tagline">{room.tagline}</p>
+          <h3>{configuredRoom.name}</h3>
+          <p className="room-card__tagline">{configuredRoom.tagline}</p>
 
           <div className="room-card__price-row">
             <div>
@@ -122,7 +117,7 @@ const RoomCard = ({ room }) => {
           </div>
 
           <div className="room-card__amenities">
-            {(room.amenities || []).slice(0, 4).map((amenity) => {
+            {(configuredRoom.amenities || []).slice(0, 4).map((amenity) => {
               const Icon = getAmenityIcon(amenity);
               return (
                 <span key={amenity}>
@@ -135,8 +130,14 @@ const RoomCard = ({ room }) => {
 
           <div className={`room-card__availability ${availabilityClass}`}>
             <i />
-            <span>{getAvailabilityLabel(tonightAvailability)}</span>
+            <span>{availabilityLabel}</span>
           </div>
+
+          {isFull && (
+            <p className="room-card__fully-booked-note">
+              All {getTotalRooms(configuredRoom.category)} rooms are occupied today. Open details to check future dates.
+            </p>
+          )}
 
           <div className="room-card__actions">
             <button
@@ -150,10 +151,10 @@ const RoomCard = ({ room }) => {
             <button
               type="button"
               className="btn btn-gold"
-              onClick={() => openBooking({ ...room, preferredOccupancy: occupancy })}
-              disabled={tonightAvailability.available <= 0}
+              onClick={() => openBooking({ ...configuredRoom, preferredOccupancy: occupancy })}
+              disabled={isLoading || hasAvailabilityError || isFull}
             >
-              Book Now
+              {isLoading ? "Checking..." : hasAvailabilityError ? "Unavailable" : isFull ? "Fully Booked Today" : "Book Now"}
             </button>
           </div>
         </div>
@@ -161,7 +162,7 @@ const RoomCard = ({ room }) => {
 
       {showDetail && (
         <RoomDetailModal
-          room={room}
+          room={configuredRoom}
           onClose={() => setShowDetail(false)}
         />
       )}

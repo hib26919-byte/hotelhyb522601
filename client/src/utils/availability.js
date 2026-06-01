@@ -9,20 +9,15 @@ import {
   startOfDay,
 } from "date-fns";
 import { normalizeDate } from "./dateHelpers";
+import {
+  OCCUPIED_STATUSES,
+  calculateAvailability as calculateConfiguredAvailability,
+  getTotalRooms,
+  isOccupiedStatus,
+  normalizeRoomCategory,
+} from "./roomConfig";
 
-export const ROOM_TOTALS = {
-  standard: 5,
-  executive: 55,
-  premium: 10,
-  suite: 15,
-};
-
-export const ACTIVE_BOOKING_STATUSES = new Set([
-  "confirmed",
-  "pending",
-  "pending_payment",
-  "pending_verification",
-]);
+export const ACTIVE_BOOKING_STATUSES = OCCUPIED_STATUSES;
 
 export const getDateKey = (value) => format(startOfDay(normalizeDate(value)), "yyyy-MM-dd");
 
@@ -32,16 +27,17 @@ export const toLocalDate = (key) => {
 };
 
 export const getRoomTotal = (roomOrCategory) => {
-  if (!roomOrCategory) return 1;
-  if (typeof roomOrCategory === "string") return ROOM_TOTALS[roomOrCategory] || 1;
-  return Number(roomOrCategory.totalRooms || ROOM_TOTALS[roomOrCategory.category] || 1);
+  if (!roomOrCategory) return 0;
+  if (typeof roomOrCategory === "string") return getTotalRooms(roomOrCategory);
+
+  return getTotalRooms(roomOrCategory.category) || Number(roomOrCategory.totalRooms || 0);
 };
 
 export const isActiveBooking = (booking) =>
-  ACTIVE_BOOKING_STATUSES.has((booking?.status || "").toLowerCase());
+  isOccupiedStatus(booking?.status);
 
 export const bookingMatchesCategory = (booking, category) =>
-  !category || (booking?.roomCategory || "").toLowerCase() === category.toLowerCase();
+  !category || normalizeRoomCategory(booking?.roomCategory) === normalizeRoomCategory(category);
 
 export const bookingOverlapsRange = (booking, requestedCheckIn, requestedCheckOut) => {
   const checkIn = startOfDay(normalizeDate(booking.checkIn));
@@ -73,12 +69,7 @@ export const calculateAvailability = ({
   totalRooms = getRoomTotal(category),
 }) => {
   if (!checkIn || !checkOut) {
-    return {
-      occupied: 0,
-      available: Number(totalRooms || 0),
-      total: Number(totalRooms || 0),
-      isAvailable: true,
-    };
+    return calculateConfiguredAvailability(category, 0, Number(totalRooms || 0));
   }
 
   const occupied = bookings.filter(
@@ -88,15 +79,7 @@ export const calculateAvailability = ({
       bookingOverlapsRange(booking, checkIn, checkOut),
   ).length;
 
-  const total = Number(totalRooms || 0);
-  const available = Math.max(total - occupied, 0);
-
-  return {
-    occupied,
-    available,
-    total,
-    isAvailable: available > 0,
-  };
+  return calculateConfiguredAvailability(category, occupied, Number(totalRooms || 0));
 };
 
 export const buildAvailabilityCalendar = ({
@@ -121,8 +104,8 @@ export const buildAvailabilityCalendar = ({
     });
 
     let status = "available";
-    if (availability.available <= 0) status = "full";
-    else if (availability.available <= 3) status = "limited";
+    if (availability.isFull) status = "full";
+    else if (availability.isLimited) status = "limited";
 
     calendar.set(getDateKey(day), {
       ...availability,
@@ -147,18 +130,12 @@ const buildAvailabilityLockIndex = (locks = [], category) => {
   }, new Map());
 };
 
-const getLockAvailability = (lock, fallbackTotal) => {
-  const total = Number(lock?.totalRooms || fallbackTotal || 0);
-  const occupied = Math.max(0, Number(lock?.occupied || 0));
-  const available = Math.max(0, total - occupied);
-
-  return {
-    occupied,
-    available,
-    total,
-    isAvailable: available > 0,
-  };
-};
+const getLockAvailability = (lock, category, fallbackTotal) =>
+  calculateConfiguredAvailability(
+    category,
+    Number(lock?.occupied || 0),
+    Number(fallbackTotal || getTotalRooms(category) || lock?.totalRooms || 0),
+  );
 
 export const calculateAvailabilityFromLocks = ({
   locks = [],
@@ -171,26 +148,16 @@ export const calculateAvailabilityFromLocks = ({
   const stayDates = getDatesInRange(checkIn, checkOut);
 
   if (stayDates.length === 0) {
-    return {
-      occupied: 0,
-      available: total,
-      total,
-      isAvailable: total > 0,
-    };
+    return calculateConfiguredAvailability(category, 0, total);
   }
 
   const lockIndex = buildAvailabilityLockIndex(locks, category);
   const minimumAvailable = stayDates.reduce((available, day) => {
-    const dayAvailability = getLockAvailability(lockIndex.get(getDateKey(day)), total);
+    const dayAvailability = getLockAvailability(lockIndex.get(getDateKey(day)), category, total);
     return Math.min(available, dayAvailability.available);
   }, total);
 
-  return {
-    occupied: Math.max(0, total - minimumAvailable),
-    available: minimumAvailable,
-    total,
-    isAvailable: minimumAvailable > 0,
-  };
+  return calculateConfiguredAvailability(category, total - minimumAvailable, total);
 };
 
 export const buildAvailabilityCalendarFromLocks = ({
@@ -208,12 +175,13 @@ export const buildAvailabilityCalendarFromLocks = ({
     const day = addDays(first, index);
     const availability = getLockAvailability(
       lockIndex.get(getDateKey(day)),
+      category,
       totalRooms,
     );
 
     let status = "available";
-    if (availability.available <= 0) status = "full";
-    else if (availability.available <= 3) status = "limited";
+    if (availability.isFull) status = "full";
+    else if (availability.isLimited) status = "limited";
 
     calendar.set(getDateKey(day), {
       ...availability,

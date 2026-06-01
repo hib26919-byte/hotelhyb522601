@@ -1,5 +1,4 @@
 // C:\Users\velch\Documents\BaelTreeHotels\client\src\admin\AdminDashboard.jsx
-import { useMemo } from "react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell,
   Pie, PieChart, RadialBar, RadialBarChart,
@@ -9,7 +8,8 @@ import { useFirestoreCollection } from "../hooks/useFirestore";
 import { buildDashboardData } from "../utils/dashboard";
 import { formatCurrency, formatDate, normalizeDate } from "../utils/dateHelpers";
 import { ROOM_CATEGORIES } from "../utils/siteData";
-import { calculateAvailability, getRoomTotal } from "../utils/availability";
+import { useAllRoomsAvailabilityToday } from "../hooks/useRoomAvailability";
+import { ROOM_CATEGORY_KEYS, ROOM_CONFIG } from "../utils/roomConfig";
 import { useNotificationContext } from "../context/NotificationContext";
 import { TrendingUp, TrendingDown, Users, CreditCard, Activity, Calendar, Eye } from "lucide-react";
 import GuestGeographyMap from "./components/GuestGeographyMap";
@@ -106,24 +106,7 @@ const { data: pageViews } = useFirestoreCollection("pageViews", {
 });
   const { notifications } = useNotificationContext();
   const dashboard = buildDashboardData(bookings, rooms, users, pageViews);
-  const availabilityToday = useMemo(() => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    return rooms.map((room) => {
-      const total = getRoomTotal(room);
-      const availability = calculateAvailability({
-        bookings,
-        category: room.category,
-        checkIn: today,
-        checkOut: tomorrow,
-        totalRooms: total,
-      });
-      const occupied = total - availability.available;
-      const percent = total ? Math.round((occupied / total) * 100) : 0;
-      return { ...room, total, occupied, percent };
-    });
-  }, [bookings, rooms]);
+  const availabilityToday = useAllRoomsAvailabilityToday();
 
   const recentBookings = [...bookings]
     .sort((a, b) => normalizeDate(b.createdAt || 0) - normalizeDate(a.createdAt || 0))
@@ -162,25 +145,50 @@ const { data: pageViews } = useFirestoreCollection("pageViews", {
           <p style={{ fontSize: "0.76rem", color: "#8f8579", marginTop: 3 }}>Today's booked inventory by category</p>
         </div>
         <div className="availability-today-grid">
-          {availabilityToday.map((room) => {
-            const color = room.percent > 80 ? "#d03636" : room.percent >= 50 ? "#f59e0b" : "#2ba150";
+          {ROOM_CATEGORY_KEYS.map((category) => {
+            const availability = availabilityToday[category] || {};
+            const hasAvailabilityError = Boolean(availability.error);
+            const percent = availability.percentOccupied || 0;
+            const color = percent >= 100 ? "#d03636" : percent >= 80 ? "#f59e0b" : "#2ba150";
             return (
-              <article key={room.category} className="availability-today-card">
-                <svg viewBox="0 0 42 42" aria-hidden="true">
-                  <circle cx="21" cy="21" r="16" />
-                  <circle
-                    cx="21"
-                    cy="21"
-                    r="16"
-                    style={{
-                      stroke: color,
-                      strokeDasharray: `${room.percent} 100`,
-                    }}
-                  />
-                </svg>
+              <article key={category} className="availability-today-card">
+                <div className="availability-today-card__ring">
+                  <svg viewBox="0 0 42 42" aria-hidden="true">
+                    <circle cx="21" cy="21" r="16" />
+                    <circle
+                      cx="21"
+                      cy="21"
+                      r="16"
+                      style={{
+                        stroke: color,
+                        strokeDasharray: `${percent} 100`,
+                      }}
+                    />
+                  </svg>
+                  <b>{availability.loading || hasAvailabilityError ? "..." : `${percent}%`}</b>
+                </div>
                 <div>
-                  <strong>{room.name}</strong>
-                  <span>{room.occupied} / {room.total} rooms occupied</span>
+                  <strong>{ROOM_CONFIG[category].label}</strong>
+                  <span>{availability.occupied ?? 0} / {availability.total ?? ROOM_CONFIG[category].total} rooms occupied</span>
+                  <small
+                    className={`availability-today-card__chip ${
+                      availability.isFull
+                        ? "is-full"
+                        : hasAvailabilityError
+                          ? "is-error"
+                        : availability.isLimited
+                          ? "is-limited"
+                          : "is-open"
+                    }`}
+                  >
+                    {availability.loading
+                      ? "Checking..."
+                      : hasAvailabilityError
+                        ? "Unavailable"
+                      : availability.isFull
+                        ? "Fully booked"
+                        : `${availability.available} available`}
+                  </small>
                 </div>
               </article>
             );

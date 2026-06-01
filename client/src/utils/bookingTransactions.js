@@ -6,8 +6,13 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { getDateKey, getDatesInRange, getRoomTotal } from "./availability";
+import { getDateKey, getDatesInRange } from "./availability";
 import { normalizeDate } from "./dateHelpers";
+import {
+  getTotalRooms,
+  isOccupiedStatus,
+  normalizeRoomCategory,
+} from "./roomConfig";
 
 export const generateBookingId = () =>
   `BT-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
@@ -17,6 +22,23 @@ const getLockId = (category, date) => `${category}_${getDateKey(date)}`;
 const getBookingStayDates = (booking) =>
   getDatesInRange(normalizeDate(booking.checkIn), normalizeDate(booking.checkOut));
 
+const getBookingLockIds = (booking, { useStoredIds = true } = {}) => {
+  const category = normalizeRoomCategory(booking?.roomCategory);
+  if (!category || !booking?.checkIn || !booking?.checkOut) return [];
+
+  return useStoredIds && booking.inventoryLockIds?.length
+    ? booking.inventoryLockIds
+    : getBookingStayDates(booking).map((date) => getLockId(category, date));
+};
+
+const getLockMetadata = (lockId) => {
+  const separatorIndex = lockId.indexOf("_");
+  return {
+    category: lockId.slice(0, separatorIndex),
+    date: lockId.slice(separatorIndex + 1),
+  };
+};
+
 export const createBookingWithInventoryLock = async ({
   bookingId,
   bookingData,
@@ -24,8 +46,8 @@ export const createBookingWithInventoryLock = async ({
   checkIn,
   checkOut,
 }) => {
-  const category = (bookingData.roomCategory || room?.category || "").toLowerCase();
-  const totalRooms = getRoomTotal(room || category);
+  const category = normalizeRoomCategory(bookingData.roomCategory || room?.category);
+  const totalRooms = getTotalRooms(category);
   const stayDates = getDatesInRange(checkIn, checkOut);
 
   if (!bookingId || !category || stayDates.length === 0) {
@@ -91,56 +113,123 @@ export const releaseBookingInventoryLock = async ({
 }) => {
   if (!bookingId) return;
 
+  return saveBookingWithInventoryLock({
+    bookingId,
+    bookingData: {
+      status,
+      paymentFailureReason,
+    },
+  });
+};
+
+export const saveBookingWithInventoryLock = async ({
+  bookingId,
+  bookingData = {},
+  deleteBooking = false,
+}) => {
+  if (!bookingId) {
+    throw new Error("A booking ID is required.");
+  }
+
   const bookingRef = doc(db, "bookings", bookingId);
 
-  await runTransaction(db, async (transaction) => {
-    const bookingSnapshot = await transaction.get(bookingRef);
-    if (!bookingSnapshot.exists()) return;
+  try {
+    await runTransaction(db, async (transaction) => {
+      const bookingSnapshot = await transaction.get(bookingRef);
+      const existingBooking = bookingSnapshot.data() || {};
+      const nextBooking = {
+        ...existingBooking,
+        ...bookingData,
+        bookingId,
+      };
 
-    const booking = bookingSnapshot.data();
-    if (booking.inventoryLockReleased) {
-      transaction.update(bookingRef, {
-        status,
-        paymentFailureReason,
-        updatedAt: serverTimestamp(),
+      const oldLockIds =
+        bookingSnapshot.exists() &&
+        isOccupiedStatus(existingBooking.status) &&
+        !existingBooking.inventoryLockReleased
+          ? getBookingLockIds(existingBooking)
+          : [];
+      const newLockIds =
+        !deleteBooking && isOccupiedStatus(nextBooking.status)
+          ? getBookingLockIds(nextBooking, { useStoredIds: false })
+          : [];
+
+      if (!deleteBooking && isOccupiedStatus(nextBooking.status) && newLockIds.length === 0) {
+        throw new Error("Invalid booking dates.");
+      }
+
+      const lockIds = [...new Set([...oldLockIds, ...newLockIds])];
+      const lockRefs = lockIds.map((lockId) => doc(db, "availabilityLocks", lockId));
+      const lockSnapshots = [];
+
+      for (const lockRef of lockRefs) {
+        lockSnapshots.push(await transaction.get(lockRef));
+      }
+
+      lockRefs.forEach((lockRef, index) => {
+        const lockId = lockIds[index];
+        const metadata = getLockMetadata(lockId);
+        const data = lockSnapshots[index].data() || {};
+        const bookingIds = Array.isArray(data.bookingIds) ? data.bookingIds : [];
+        const alreadyCounted = bookingIds.includes(bookingId);
+        const shouldBeCounted = newLockIds.includes(lockId);
+        const occupiedWithoutBooking = Math.max(
+          0,
+          Number(data.occupied || 0) - (alreadyCounted ? 1 : 0),
+        );
+        const occupied = occupiedWithoutBooking + (shouldBeCounted ? 1 : 0);
+        const totalRooms = getTotalRooms(metadata.category);
+
+        if (shouldBeCounted && occupied > totalRooms) {
+          throw new Error("ROOM_FULLY_BOOKED");
+        }
+
+        transaction.set(
+          lockRef,
+          {
+            ...metadata,
+            occupied,
+            totalRooms,
+            bookingIds: shouldBeCounted
+              ? arrayUnion(bookingId)
+              : arrayRemove(bookingId),
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true },
+        );
       });
-      return;
-    }
 
-    const category = (booking.roomCategory || "").toLowerCase();
-    const lockIds = booking.inventoryLockIds?.length
-      ? booking.inventoryLockIds
-      : getBookingStayDates(booking).map((date) => getLockId(category, date));
-    const lockRefs = lockIds.map((lockId) => doc(db, "availabilityLocks", lockId));
-    const lockSnapshots = [];
-
-    for (const lockRef of lockRefs) {
-      lockSnapshots.push(await transaction.get(lockRef));
-    }
-
-    lockRefs.forEach((lockRef, index) => {
-      const data = lockSnapshots[index].data() || {};
-      const hasBooking = Array.isArray(data.bookingIds)
-        ? data.bookingIds.includes(bookingId)
-        : true;
-      const occupied = Number(data.occupied || 0);
+      if (deleteBooking) {
+        if (bookingSnapshot.exists()) {
+          transaction.delete(bookingRef);
+        }
+        return;
+      }
 
       transaction.set(
-        lockRef,
+        bookingRef,
         {
-          occupied: hasBooking ? Math.max(0, occupied - 1) : occupied,
-          bookingIds: arrayRemove(bookingId),
+          ...bookingData,
+          bookingId,
+          inventoryLockIds: newLockIds,
+          inventoryLockReleased: newLockIds.length === 0,
           updatedAt: serverTimestamp(),
         },
         { merge: true },
       );
     });
 
-    transaction.update(bookingRef, {
-      status,
-      paymentFailureReason,
-      inventoryLockReleased: true,
-      updatedAt: serverTimestamp(),
-    });
-  });
+    return { success: true };
+  } catch (error) {
+    if (error.message === "ROOM_FULLY_BOOKED") {
+      return { success: false, reason: "ROOM_FULLY_BOOKED" };
+    }
+    throw error;
+  }
 };
+
+export const deleteBookingWithInventoryLock = (bookingId) =>
+  saveBookingWithInventoryLock({
+    bookingId,
+    deleteBooking: true,
+  });

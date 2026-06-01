@@ -1,5 +1,7 @@
 // C:\Users\velch\Documents\BaelTreeHotels\client\src\utils\siteData.js
 
+import { ROOM_CONFIG } from "./roomConfig";
+
 export const HOTEL_INFO = {
   name: "Bael Tree Hotels",
   tagline: "Heritage warmth at the city's pulse",
@@ -40,10 +42,10 @@ export const ROOM_CATEGORIES = [
 
     videoUrl: "/1.mp4",
 
-    singlePrice: 2500,
-    doublePrice: 3000,
+    singlePrice: ROOM_CONFIG.standard.single,
+    doublePrice: ROOM_CONFIG.standard.double,
 
-    totalRooms: 5,
+    totalRooms: ROOM_CONFIG.standard.total,
 
     amenities: [
       "Complimentary Wi-Fi",
@@ -76,10 +78,10 @@ export const ROOM_CATEGORIES = [
 
     videoUrl: "/2.mp4",
 
-    singlePrice: 3500,
-    doublePrice: 4000,
+    singlePrice: ROOM_CONFIG.executive.single,
+    doublePrice: ROOM_CONFIG.executive.double,
 
-    totalRooms: 55,
+    totalRooms: ROOM_CONFIG.executive.total,
 
     amenities: [
       "Luxury bedding",
@@ -112,10 +114,10 @@ export const ROOM_CATEGORIES = [
 
     videoUrl: "/3.mp4",
 
-    singlePrice: 4500,
-    doublePrice: 5000,
+    singlePrice: ROOM_CONFIG.premium.single,
+    doublePrice: ROOM_CONFIG.premium.double,
 
-    totalRooms: 10,
+    totalRooms: ROOM_CONFIG.premium.total,
 
     amenities: [
       "Premium interiors",
@@ -148,10 +150,10 @@ export const ROOM_CATEGORIES = [
 
     videoUrl: "/4.mp4",
 
-    singlePrice: 6500,
-    doublePrice: 7500,
+    singlePrice: ROOM_CONFIG.suite.single,
+    doublePrice: ROOM_CONFIG.suite.double,
 
-    totalRooms: 15,
+    totalRooms: ROOM_CONFIG.suite.total,
 
     amenities: [
       "Separate living area",

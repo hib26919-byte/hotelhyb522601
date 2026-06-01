@@ -49,6 +49,8 @@ const BookingDateTabs = ({
   checkIn,
   checkOut,
   availabilityCalendar = new Map(),
+  availabilityLoading = false,
+  availabilityError = false,
   pricing = {},
   onChange,
   onConfirm,
@@ -60,6 +62,8 @@ const BookingDateTabs = ({
   const days = useMemo(() => buildMonthDays(visibleMonth), [visibleMonth]);
   const nights = getNightsBetween(checkIn, checkOut);
   const canConfirm =
+    !availabilityLoading &&
+    !availabilityError &&
     nights > 0 &&
     isRangeSelectable({
       checkIn,

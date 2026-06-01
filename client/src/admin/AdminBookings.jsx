@@ -1,12 +1,16 @@
-import { addDoc, collection, deleteDoc, doc, orderBy, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { orderBy, serverTimestamp } from "firebase/firestore";
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { CheckCircle, Download, Pencil, Save, Trash2, X } from "lucide-react";
-import { db } from "../utils/firebase";
 import { downloadCsv } from "../utils/dashboard";
 import { formatCurrency, formatDate } from "../utils/dateHelpers";
 import { useFirestoreCollection } from "../hooks/useFirestore";
 import { ROOM_CATEGORIES } from "../utils/siteData";
+import {
+  deleteBookingWithInventoryLock,
+  generateBookingId,
+  saveBookingWithInventoryLock,
+} from "../utils/bookingTransactions";
 
 const initialManualBooking = {
   userName: "",
@@ -76,10 +80,13 @@ const AdminBookings = () => {
 
   const handleStatusUpdate = async (bookingId, status) => {
     try {
-      await updateDoc(doc(db, "bookings", bookingId), {
+      const result = await saveBookingWithInventoryLock({
+        bookingId,
+        bookingData: {
         status,
-        updatedAt: serverTimestamp(),
+        },
       });
+      if (!result.success) throw new Error("This room category is fully booked for the selected dates.");
       toast.success("Booking status updated.");
     } catch (error) {
       toast.error(error.message || "Unable to update booking status.");
@@ -89,12 +96,8 @@ const AdminBookings = () => {
   const handleBulkStatus = async (status) => {
     try {
       await Promise.all(
-        selectedIds.map((id) =>
-          updateDoc(doc(db, "bookings", id), {
-            status,
-            updatedAt: serverTimestamp(),
-          }),
-        ),
+        selectedIds.map((bookingId) =>
+          saveBookingWithInventoryLock({ bookingId, bookingData: { status } })),
       );
       setSelectedIds([]);
       toast.success("Bulk status update complete.");
@@ -107,7 +110,7 @@ const AdminBookings = () => {
     if (!window.confirm("Delete this booking permanently?")) return;
 
     try {
-      await deleteDoc(doc(db, "bookings", bookingId));
+      await deleteBookingWithInventoryLock(bookingId);
       setSelectedIds((previous) => previous.filter((id) => id !== bookingId));
       if (editingBookingId === bookingId) resetManualForm();
       toast.success("Booking deleted.");
@@ -120,7 +123,7 @@ const AdminBookings = () => {
     if (!selectedIds.length || !window.confirm(`Delete ${selectedIds.length} selected booking(s)?`)) return;
 
     try {
-      await Promise.all(selectedIds.map((id) => deleteDoc(doc(db, "bookings", id))));
+      await Promise.all(selectedIds.map((id) => deleteBookingWithInventoryLock(id)));
       setSelectedIds([]);
       toast.success("Selected bookings deleted.");
     } catch (error) {
@@ -178,16 +181,15 @@ const AdminBookings = () => {
         updatedAt: serverTimestamp(),
       };
 
-      if (editingBookingId) {
-        await setDoc(doc(db, "bookings", editingBookingId), payload, { merge: true });
-        toast.success("Booking updated.");
-      } else {
-        await addDoc(collection(db, "bookings"), {
+      const result = await saveBookingWithInventoryLock({
+        bookingId: editingBookingId || generateBookingId(),
+        bookingData: {
           ...payload,
-          createdAt: serverTimestamp(),
-        });
-        toast.success("Manual booking created.");
-      }
+          ...(editingBookingId ? {} : { createdAt: serverTimestamp() }),
+        },
+      });
+      if (!result.success) throw new Error("This room category is fully booked for the selected dates.");
+      toast.success(editingBookingId ? "Booking updated." : "Manual booking created.");
 
       resetManualForm();
     } catch (error) {

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Check, PlayCircle } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useFirestoreCollection } from "../hooks/useFirestore";
+import { useAllRoomsAvailabilityToday } from "../hooks/useRoomAvailability";
 import { useBooking } from "../context/BookingContext";
 import AmenitiesSection from "../components/AmenitiesSection";
 import PageHero from "../components/PageHero";
@@ -9,6 +10,7 @@ import RoomCard from "../components/RoomCard";
 import SEOHead from "../components/SEOHead";
 import { formatCurrency } from "../utils/dateHelpers";
 import { ROOM_CATEGORIES } from "../utils/siteData";
+import { getTotalRooms, withRoomConfig } from "../utils/roomConfig";
 
 const Rooms = () => {
   const [searchParams] = useSearchParams();
@@ -17,6 +19,7 @@ const Rooms = () => {
   const roomQuery = searchParams.get("room");
 
   const { openBooking } = useBooking();
+  const availabilityToday = useAllRoomsAvailabilityToday();
 
   const { data: firebaseRooms } = useFirestoreCollection("rooms", {
     fallbackData: ROOM_CATEGORIES,
@@ -32,10 +35,10 @@ const Rooms = () => {
         (room) => room.category === firebaseRoom.category
       );
 
-      return {
+      return withRoomConfig({
         ...firebaseRoom,
         videoUrl: localRoom?.videoUrl || "",
-      };
+      });
     });
   }, [firebaseRooms]);
 
@@ -73,7 +76,10 @@ const Rooms = () => {
               key={room.id}
               onMouseEnter={() => setSelectedRoom(room)}
             >
-              <RoomCard room={room} />
+              <RoomCard
+                room={room}
+                availabilityToday={availabilityToday[room.category]}
+              />
             </div>
           ))}
         </div>
@@ -140,7 +146,7 @@ const Rooms = () => {
 
               <div>
                 <span>Total Rooms</span>
-                <strong>{selectedRoom.totalRooms}</strong>
+                <strong>{getTotalRooms(selectedRoom.category)}</strong>
               </div>
             </div>
 

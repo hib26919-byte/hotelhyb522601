@@ -10,6 +10,7 @@ import { db } from "../utils/firebase";
 import { uploadMultipleToImgBB } from "../utils/imgbb";
 import { useFirestoreCollection } from "../hooks/useFirestore";
 import { ROOM_CATEGORIES } from "../utils/siteData";
+import { getTotalRooms, ROOM_CONFIG } from "../utils/roomConfig";
 
 const AMENITIES_LIST = [
   "Complimentary Wi-Fi",
@@ -27,9 +28,9 @@ const EMPTY_ROOM = {
   name: "",
   tagline: "",
   description: "",
-  singlePrice: 2500,
-  doublePrice: 3000,
-  totalRooms: 1,
+  singlePrice: ROOM_CONFIG.standard.single,
+  doublePrice: ROOM_CONFIG.standard.double,
+  totalRooms: getTotalRooms("standard"),
   amenities: [],
   images: [],
   isAvailable: true,
@@ -55,7 +56,13 @@ const AdminRooms = () => {
 
   useEffect(() => {
     if (selectedRoom) {
-      setForm({ ...EMPTY_ROOM, ...selectedRoom, amenities: selectedRoom.amenities || [], images: selectedRoom.images || [] });
+      setForm({
+        ...EMPTY_ROOM,
+        ...selectedRoom,
+        totalRooms: getTotalRooms(selectedRoom.category),
+        amenities: selectedRoom.amenities || [],
+        images: selectedRoom.images || [],
+      });
       setImageFiles([]);
       setImagePreviews([]);
     } else {
@@ -104,7 +111,7 @@ const AdminRooms = () => {
         images: uploadedImages,
         singlePrice: Number(form.singlePrice),
         doublePrice: Number(form.doublePrice),
-        totalRooms: Number(form.totalRooms),
+        totalRooms: getTotalRooms(form.category),
         updatedAt: serverTimestamp(),
         createdAt: selectedId ? (form.createdAt || serverTimestamp()) : serverTimestamp(),
       };
@@ -223,7 +230,7 @@ const AdminRooms = () => {
             </div>
             <strong style={{ fontFamily: "'Playfair Display', serif" }}>{room.name || room.category}</strong>
             <small style={{ color: "#8f8579", fontSize: "0.75rem" }}>
-              {room.totalRooms} rooms · ₹{room.singlePrice?.toLocaleString("en-IN")}
+              {getTotalRooms(room.category)} rooms · ₹{room.singlePrice?.toLocaleString("en-IN")}
             </small>
             {room.images?.length > 0 && (
               <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
@@ -263,7 +270,14 @@ const AdminRooms = () => {
           <div className="field-grid">
             <label>
               Category
-              <select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))}>
+              <select
+                value={form.category}
+                onChange={e => setForm(p => ({
+                  ...p,
+                  category: e.target.value,
+                  totalRooms: getTotalRooms(e.target.value),
+                }))}
+              >
                 <option value="standard">Standard Room</option>
                 <option value="executive">Executive Room</option>
                 <option value="premium">Premium Room</option>
@@ -293,7 +307,8 @@ const AdminRooms = () => {
             </label>
             <label>
               Total Rooms
-              <input type="number" min="1" value={form.totalRooms} onChange={e => setForm(p => ({ ...p, totalRooms: e.target.value }))} />
+              <input type="number" value={getTotalRooms(form.category)} readOnly />
+              <small>Capacity is managed in roomConfig.js.</small>
             </label>
             <label className="switch-row">
               <input type="checkbox" checked={form.isAvailable} onChange={e => setForm(p => ({ ...p, isAvailable: e.target.checked }))} />

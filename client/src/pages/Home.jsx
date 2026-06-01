@@ -1,6 +1,7 @@
 import { ArrowRight, Building2, MapPinned, Plane, TrainFront, TramFront, Star, Shield, Clock, Award, Quote, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useFirestoreCollection } from "../hooks/useFirestore";
+import { useAllRoomsAvailabilityToday } from "../hooks/useRoomAvailability";
 import DiningSection from "../components/DiningSection";
 import GoogleReviewsSection from "../components/GoogleReviewsSection";
 import HeroSlider from "../components/HeroSlider";
@@ -160,6 +161,7 @@ const Home = () => {
   const { data: rooms } = useFirestoreCollection("rooms", {
     fallbackData: ROOM_CATEGORIES,
   });
+  const availabilityToday = useAllRoomsAvailabilityToday();
 
   return (
     <>
@@ -215,7 +217,11 @@ const Home = () => {
         />
         <div className="cards-grid">
           {rooms.map((room) => (
-            <RoomCard key={room.id} room={room} />
+            <RoomCard
+              key={room.id}
+              room={room}
+              availabilityToday={availabilityToday[room.category]}
+            />
           ))}
         </div>
         <div style={{ textAlign: "center", marginTop: "3rem" }}>

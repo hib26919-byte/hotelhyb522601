@@ -2,6 +2,7 @@
 
 import { format, subDays, startOfDay } from "date-fns";
 import { normalizeDate } from "./dateHelpers";
+import { getTotalRoomInventory } from "./roomConfig";
 
 /* ── Download CSV ── */
 export const downloadCsv = (filename, rows) => {
@@ -52,7 +53,7 @@ export const buildDashboardData = (bookings = [], rooms = [], users = [], pageVi
     ? Math.round(((confirmedThisMonth - confirmedLastMonth) / confirmedLastMonth) * 100)
     : 0;
 
-  const totalRoomsInventory = rooms.reduce((s, r) => s + (r.totalRooms || 0), 0) || 85;
+  const totalRoomsInventory = getTotalRoomInventory();
   const todayBookings = bookings.filter((b) => {
     const ci = normalizeDate(b.checkIn);
     const co = normalizeDate(b.checkOut);

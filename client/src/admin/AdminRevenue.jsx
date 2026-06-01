@@ -22,7 +22,7 @@ import { useFirestoreCollection } from "../hooks/useFirestore";
 import { db } from "../utils/firebase";
 import { downloadCsv } from "../utils/dashboard";
 import { formatCurrency, formatDate, getNightsBetween, normalizeDate } from "../utils/dateHelpers";
-import { ROOM_TOTALS } from "../utils/availability";
+import { ROOM_TOTALS } from "../utils/roomConfig";
 
 const CATEGORIES = ["standard", "executive", "premium", "suite"];
 const CATEGORY_COLORS = {
