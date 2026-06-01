@@ -3,12 +3,13 @@ import { useState } from "react";
 import {
   Bell, CreditCard, GalleryHorizontal, LayoutDashboard,
   PartyPopper, Settings, Users, Warehouse, ChevronRight,
-  LogOut, Menu, X, TrendingUp
+  LogOut, Menu, X, TrendingUp, CheckCheck, Volume2, VolumeX
 } from "lucide-react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import { useNotificationContext } from "../context/NotificationContext";
 import GlobalImageUploader from "./components/GlobalImageUploader";
+import { normalizeDate } from "../utils/dateHelpers";
 
 const navItems = [
   { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, desc: "Overview & analytics" },
@@ -22,13 +23,53 @@ const navItems = [
   { to: "/admin/settings", label: "Settings", icon: Settings, desc: "Configuration" },
 ];
 
+const notificationIcons = {
+  new_booking: "B",
+  new_user: "U",
+  payment: "P",
+  cancellation: "X",
+};
+
+const getRelativeTime = (value) => {
+  const diff = Date.now() - normalizeDate(value).getTime();
+  const minutes = Math.max(0, Math.floor(diff / 60000));
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hr ago`;
+  return `${Math.floor(hours / 24)} day ago`;
+};
+
 const AdminLayout = () => {
   const { profile, logout } = useAuth();
-  const { unreadCount } = useNotificationContext();
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    soundEnabled,
+    setSoundEnabled,
+  } = useNotificationContext();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [notificationOpen, setNotificationOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const currentPage = navItems.find((n) => location.pathname.startsWith(n.to));
+
+  const handleNotificationClick = async (notification) => {
+    await markAsRead(notification.id);
+    setNotificationOpen(false);
+    if (notification.relatedType === "booking" || notification.type === "new_booking") {
+      navigate("/admin/bookings");
+      return;
+    }
+    if (notification.relatedType === "user" || notification.type === "new_user") {
+      navigate("/admin/users");
+      return;
+    }
+    navigate("/admin/notifications");
+  };
 
   return (
     <div style={{
@@ -266,15 +307,15 @@ const AdminLayout = () => {
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
             {/* Notifications bell */}
             <div style={{ position: "relative" }}>
-              <NavLink to="/admin/notifications" style={{
+              <button type="button" onClick={() => setNotificationOpen((open) => !open)} style={{
                 width: 40, height: 40, borderRadius: 12, display: "grid", placeItems: "center",
                 background: "#ffffff", border: "1px solid rgba(201,168,76,0.2)",
-                color: "#5a5a5a", textDecoration: "none",
+                color: "#5a5a5a", cursor: "pointer",
               }}>
                 <Bell size={17} />
-              </NavLink>
+              </button>
               {unreadCount > 0 && (
-                <span style={{
+                <span className="admin-bell-badge" style={{
                   position: "absolute", top: -3, right: -3,
                   minWidth: 18, height: 18, borderRadius: 999,
                   background: "#d03636", color: "#fff",
@@ -282,6 +323,54 @@ const AdminLayout = () => {
                   display: "grid", placeItems: "center",
                   padding: "0 4px",
                 }}>{unreadCount}</span>
+              )}
+              {notificationOpen && (
+                <div className="admin-notification-dropdown">
+                  <div className="admin-notification-dropdown__top">
+                    <div>
+                      <strong>Notifications</strong>
+                      <small>{unreadCount} unread</small>
+                    </div>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button
+                        type="button"
+                        onClick={() => setSoundEnabled(!soundEnabled)}
+                        title="Toggle notification sound"
+                      >
+                        {soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
+                      </button>
+                      <button type="button" onClick={markAllAsRead} title="Mark all as read">
+                        <CheckCheck size={14} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="admin-notification-dropdown__list">
+                    {notifications.slice(0, 8).map((notification) => (
+                      <button
+                        type="button"
+                        key={notification.id}
+                        className={notification.isRead ? "" : "unread"}
+                        onClick={() => handleNotificationClick(notification)}
+                      >
+                        <span>{notificationIcons[notification.type] || "!"}</span>
+                        <div>
+                          <strong>{notification.message}</strong>
+                          <small>{getRelativeTime(notification.createdAt)}</small>
+                        </div>
+                      </button>
+                    ))}
+                    {!notifications.length && (
+                      <p>No notifications yet.</p>
+                    )}
+                  </div>
+                  <NavLink
+                    to="/admin/notifications"
+                    className="admin-notification-dropdown__footer"
+                    onClick={() => setNotificationOpen(false)}
+                  >
+                    View all notifications
+                  </NavLink>
+                </div>
               )}
             </div>
 
@@ -325,6 +414,104 @@ const AdminLayout = () => {
         .admin-sidebar.open { width: 280px; }
         .admin-sidebar-overlay { display: none; }
         .admin-mobile-toggle { display: none; }
+        .admin-bell-badge { animation: bellBadgeBounce 0.45s ease; }
+        @keyframes bellBadgeBounce {
+          0% { transform: scale(1); }
+          45% { transform: scale(1.4); }
+          100% { transform: scale(1); }
+        }
+        .admin-notification-dropdown {
+          position: absolute;
+          top: calc(100% + 0.7rem);
+          right: 0;
+          width: min(360px, calc(100vw - 2rem));
+          max-height: 480px;
+          display: grid;
+          overflow: hidden;
+          border-radius: 18px;
+          background: #ffffff;
+          border: 1px solid rgba(201,168,76,0.24);
+          box-shadow: 0 24px 70px rgba(0,0,0,0.18);
+          z-index: 50;
+        }
+        .admin-notification-dropdown__top {
+          display: flex;
+          justify-content: space-between;
+          gap: 1rem;
+          padding: 0.9rem 1rem;
+          border-bottom: 1px solid rgba(201,168,76,0.16);
+        }
+        .admin-notification-dropdown__top strong {
+          display: block;
+          font-family: 'Playfair Display', serif;
+          color: #1a1a1a;
+        }
+        .admin-notification-dropdown__top small {
+          color: #8f8579;
+          font-size: 0.72rem;
+        }
+        .admin-notification-dropdown__top button {
+          width: 30px;
+          height: 30px;
+          border-radius: 10px;
+          display: grid;
+          place-items: center;
+          background: rgba(201,168,76,0.08);
+          color: #7b1a1a;
+          cursor: pointer;
+        }
+        .admin-notification-dropdown__list {
+          max-height: 350px;
+          overflow-y: auto;
+          display: grid;
+        }
+        .admin-notification-dropdown__list > button {
+          width: 100%;
+          display: grid;
+          grid-template-columns: 34px 1fr;
+          gap: 0.65rem;
+          padding: 0.85rem 1rem;
+          text-align: left;
+          border-bottom: 1px solid rgba(0,0,0,0.04);
+          background: #fff;
+          cursor: pointer;
+        }
+        .admin-notification-dropdown__list > button.unread {
+          background: #f8f3e8;
+        }
+        .admin-notification-dropdown__list > button > span {
+          width: 34px;
+          height: 34px;
+          border-radius: 12px;
+          display: grid;
+          place-items: center;
+          background: rgba(123,26,26,0.08);
+          color: #7b1a1a;
+          font-weight: 700;
+        }
+        .admin-notification-dropdown__list strong {
+          display: block;
+          color: #1a1a1a;
+          font-size: 0.78rem;
+          line-height: 1.45;
+        }
+        .admin-notification-dropdown__list small,
+        .admin-notification-dropdown__list p {
+          color: #8f8579;
+          font-size: 0.7rem;
+        }
+        .admin-notification-dropdown__list p {
+          padding: 1rem;
+        }
+        .admin-notification-dropdown__footer {
+          display: flex;
+          justify-content: center;
+          padding: 0.75rem;
+          color: #c9a84c;
+          font-size: 0.78rem;
+          text-decoration: none;
+          border-top: 1px solid rgba(201,168,76,0.16);
+        }
 
         @media (max-width: 768px) {
           .admin-sidebar {

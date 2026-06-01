@@ -1,4 +1,5 @@
 // C:\Users\velch\Documents\BaelTreeHotels\client\src\admin\AdminDashboard.jsx
+import { useMemo } from "react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell,
   Pie, PieChart, RadialBar, RadialBarChart,
@@ -8,6 +9,7 @@ import { useFirestoreCollection } from "../hooks/useFirestore";
 import { buildDashboardData } from "../utils/dashboard";
 import { formatCurrency, formatDate, normalizeDate } from "../utils/dateHelpers";
 import { ROOM_CATEGORIES } from "../utils/siteData";
+import { calculateAvailability, getRoomTotal } from "../utils/availability";
 import { useNotificationContext } from "../context/NotificationContext";
 import { TrendingUp, TrendingDown, Users, CreditCard, Activity, Calendar, Eye } from "lucide-react";
 import GuestGeographyMap from "./components/GuestGeographyMap";
@@ -104,6 +106,24 @@ const { data: pageViews } = useFirestoreCollection("pageViews", {
 });
   const { notifications } = useNotificationContext();
   const dashboard = buildDashboardData(bookings, rooms, users, pageViews);
+  const availabilityToday = useMemo(() => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    return rooms.map((room) => {
+      const total = getRoomTotal(room);
+      const availability = calculateAvailability({
+        bookings,
+        category: room.category,
+        checkIn: today,
+        checkOut: tomorrow,
+        totalRooms: total,
+      });
+      const occupied = total - availability.available;
+      const percent = total ? Math.round((occupied / total) * 100) : 0;
+      return { ...room, total, occupied, percent };
+    });
+  }, [bookings, rooms]);
 
   const recentBookings = [...bookings]
     .sort((a, b) => normalizeDate(b.createdAt || 0) - normalizeDate(a.createdAt || 0))
@@ -127,6 +147,45 @@ const { data: pageViews } = useFirestoreCollection("pageViews", {
             color={kpiColors[i]}
           />
         ))}
+      </div>
+
+      <div style={{
+        padding: "1.5rem",
+        borderRadius: 24,
+        background: "#ffffff",
+        border: "1px solid rgba(201,168,76,0.2)",
+      }}>
+        <div style={{ marginBottom: "1rem" }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.15rem", color: "#1a1a1a", margin: 0 }}>
+            Live Room Availability
+          </h3>
+          <p style={{ fontSize: "0.76rem", color: "#8f8579", marginTop: 3 }}>Today's booked inventory by category</p>
+        </div>
+        <div className="availability-today-grid">
+          {availabilityToday.map((room) => {
+            const color = room.percent > 80 ? "#d03636" : room.percent >= 50 ? "#f59e0b" : "#2ba150";
+            return (
+              <article key={room.category} className="availability-today-card">
+                <svg viewBox="0 0 42 42" aria-hidden="true">
+                  <circle cx="21" cy="21" r="16" />
+                  <circle
+                    cx="21"
+                    cy="21"
+                    r="16"
+                    style={{
+                      stroke: color,
+                      strokeDasharray: `${room.percent} 100`,
+                    }}
+                  />
+                </svg>
+                <div>
+                  <strong>{room.name}</strong>
+                  <span>{room.occupied} / {room.total} rooms occupied</span>
+                </div>
+              </article>
+            );
+          })}
+        </div>
       </div>
 
       {/* Page views */}

@@ -1,0 +1,1589 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/RoomDetailModal.jsx");import __vite__cjsImport0_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=a2f2c8cc"; const Fragment = __vite__cjsImport0_react_jsxDevRuntime["Fragment"]; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+let prevRefreshReg;
+let prevRefreshSig;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  prevRefreshReg = window.$RefreshReg$;
+  prevRefreshSig = window.$RefreshSig$;
+  window.$RefreshReg$ = RefreshRuntime.getRefreshReg("C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx");
+  window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+}
+var _s = $RefreshSig$(), _s2 = $RefreshSig$();
+import __vite__cjsImport3_react from "/node_modules/.vite/deps/react.js?v=a2f2c8cc"; const useEffect = __vite__cjsImport3_react["useEffect"]; const useRef = __vite__cjsImport3_react["useRef"]; const useState = __vite__cjsImport3_react["useState"]; const useCallback = __vite__cjsImport3_react["useCallback"];
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  Pause,
+  BedDouble,
+  Users,
+  Check,
+  Star,
+  Calendar,
+  Wifi,
+  Coffee,
+  Tv,
+  Shield,
+  Car,
+  Phone,
+  ZoomIn,
+  Share2,
+  Heart
+} from "/node_modules/.vite/deps/lucide-react.js?v=a2f2c8cc";
+import { useBooking } from "/src/context/BookingContext.jsx";
+import { formatCurrency } from "/src/utils/dateHelpers.js";
+const AMENITY_ICONS = {
+  "Complimentary Wi-Fi": Wifi,
+  "Smart TV with OTT": Tv,
+  "Mini bar": Coffee,
+  "Premium toiletries": Star,
+  "Airport transfer": Car,
+  "In-room safe": Shield,
+  "Work desk": Calendar,
+  "Travel desk assistance": Phone
+};
+const ProgressRing = ({ progress, size = 36, stroke = 3 }) => {
+  const radius = (size - stroke * 2) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const strokeDashoffset = circumference - progress / 100 * circumference;
+  return /* @__PURE__ */ jsxDEV("svg", { width: size, height: size, style: { transform: "rotate(-90deg)" }, children: [
+    /* @__PURE__ */ jsxDEV(
+      "circle",
+      {
+        stroke: "rgba(255,255,255,0.2)",
+        strokeWidth: stroke,
+        fill: "transparent",
+        r: radius,
+        cx: size / 2,
+        cy: size / 2
+      },
+      void 0,
+      false,
+      {
+        fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+        lineNumber: 50,
+        columnNumber: 7
+      },
+      this
+    ),
+    /* @__PURE__ */ jsxDEV(
+      "circle",
+      {
+        stroke: "#c9a84c",
+        strokeWidth: stroke,
+        fill: "transparent",
+        r: radius,
+        cx: size / 2,
+        cy: size / 2,
+        strokeDasharray: `${circumference} ${circumference}`,
+        strokeDashoffset,
+        strokeLinecap: "round",
+        style: { transition: "stroke-dashoffset 0.1s linear" }
+      },
+      void 0,
+      false,
+      {
+        fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+        lineNumber: 58,
+        columnNumber: 7
+      },
+      this
+    )
+  ] }, void 0, true, {
+    fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+    lineNumber: 49,
+    columnNumber: 5
+  }, this);
+};
+_c = ProgressRing;
+const CloseBtn = ({ onClick }) => /* @__PURE__ */ jsxDEV(
+  "button",
+  {
+    type: "button",
+    onClick,
+    "aria-label": "Close room details",
+    style: {
+      position: "absolute",
+      top: "1rem",
+      right: "1rem",
+      zIndex: 10,
+      width: 44,
+      height: 44,
+      borderRadius: "50%",
+      background: "rgba(26,26,26,0.85)",
+      color: "#faf8f5",
+      display: "grid",
+      placeItems: "center",
+      border: "1px solid rgba(201,168,76,0.3)",
+      cursor: "pointer",
+      backdropFilter: "blur(8px)",
+      transition: "all 0.3s ease"
+    },
+    onMouseEnter: (e) => e.currentTarget.style.background = "rgba(123,26,26,0.9)",
+    onMouseLeave: (e) => e.currentTarget.style.background = "rgba(26,26,26,0.85)",
+    children: /* @__PURE__ */ jsxDEV(X, { size: 18 }, void 0, false, {
+      fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+      lineNumber: 100,
+      columnNumber: 5
+    }, this)
+  },
+  void 0,
+  false,
+  {
+    fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+    lineNumber: 76,
+    columnNumber: 1
+  },
+  this
+);
+_c2 = CloseBtn;
+const AUTO_SCROLL_DURATION = 2e3;
+const MediaGallery = ({ images = [], videoUrl }) => {
+  _s();
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [autoScrollPaused, setAutoScrollPaused] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [isWished, setIsWished] = useState(false);
+  const [zoomed, setZoomed] = useState(false);
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+  const videoRef = useRef(null);
+  const intervalRef = useRef(null);
+  const progressRef = useRef(null);
+  const startTimeRef = useRef(null);
+  const pausedProgressRef = useRef(0);
+  const allMedia = [...images];
+  const totalSlides = allMedia.length;
+  const startAutoScroll = useCallback(() => {
+    if (totalSlides <= 1) return;
+    clearInterval(intervalRef.current);
+    clearInterval(progressRef.current);
+    startTimeRef.current = Date.now() - pausedProgressRef.current * AUTO_SCROLL_DURATION / 100;
+    progressRef.current = setInterval(() => {
+      const elapsed = Date.now() - startTimeRef.current;
+      const pct = Math.min(elapsed / AUTO_SCROLL_DURATION * 100, 100);
+      setProgress(pct);
+    }, 50);
+    intervalRef.current = setTimeout(() => {
+      pausedProgressRef.current = 0;
+      setActiveIndex((i) => (i + 1) % totalSlides);
+      setProgress(0);
+    }, AUTO_SCROLL_DURATION - pausedProgressRef.current * AUTO_SCROLL_DURATION / 100);
+  }, [totalSlides, allMedia]);
+  const stopAutoScroll = useCallback(() => {
+    clearInterval(intervalRef.current);
+    clearInterval(progressRef.current);
+    pausedProgressRef.current = progress;
+  }, [progress]);
+  const resumeAutoScroll = useCallback(() => {
+    startAutoScroll();
+  }, [startAutoScroll]);
+  useEffect(() => {
+    if (!autoScrollPaused) {
+      startAutoScroll();
+    } else {
+      stopAutoScroll();
+    }
+    return () => {
+      clearInterval(intervalRef.current);
+      clearInterval(progressRef.current);
+    };
+  }, [activeIndex, autoScrollPaused]);
+  const handleUserNav = (newIndex) => {
+    pausedProgressRef.current = 0;
+    setProgress(0);
+    setActiveIndex(newIndex);
+    setAutoScrollPaused(true);
+    setTimeout(() => setAutoScrollPaused(false), 1500);
+  };
+  const goPrev = () => handleUserNav((activeIndex - 1 + totalSlides) % totalSlides);
+  const goNext = () => handleUserNav((activeIndex + 1) % totalSlides);
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+  const handleMouseMove = (e) => {
+    if (!zoomed) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width * 100;
+    const y = (e.clientY - rect.top) / rect.height * 100;
+    setZoomPos({ x, y });
+  };
+  const togglePause = () => {
+    if (autoScrollPaused) {
+      pausedProgressRef.current = progress;
+      setAutoScrollPaused(false);
+    } else {
+      setAutoScrollPaused(true);
+    }
+  };
+  return /* @__PURE__ */ jsxDEV(
+    "div",
+    {
+      style: {
+        position: "relative",
+        borderRadius: 24,
+        overflow: "hidden",
+        background: "#111",
+        aspectRatio: "16/9"
+      },
+      children: [
+        images.map(
+          (src, i) => /* @__PURE__ */ jsxDEV(
+            "div",
+            {
+              style: {
+                position: "absolute",
+                inset: 0,
+                opacity: activeIndex === i ? 1 : 0,
+                transition: "opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1)",
+                cursor: zoomed ? "zoom-out" : "zoom-in",
+                overflow: "hidden"
+              },
+              onClick: () => setZoomed((z) => !z),
+              onMouseMove: handleMouseMove,
+              onMouseEnter: () => setAutoScrollPaused(true),
+              onMouseLeave: () => {
+                if (!zoomed) setAutoScrollPaused(false);
+              },
+              children: /* @__PURE__ */ jsxDEV(
+                "img",
+                {
+                  src,
+                  alt: `Room view ${i + 1}`,
+                  loading: i === 0 ? "eager" : "lazy",
+                  style: {
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    transformOrigin: zoomed && activeIndex === i ? `${zoomPos.x}% ${zoomPos.y}%` : "center",
+                    transform: zoomed && activeIndex === i ? "scale(2)" : "scale(1)",
+                    transition: zoomed ? "transform 0.1s ease" : "transform 0.5s ease",
+                    userSelect: "none"
+                  },
+                  draggable: false
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                  lineNumber: 232,
+                  columnNumber: 11
+                },
+                this
+              )
+            },
+            i,
+            false,
+            {
+              fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+              lineNumber: 216,
+              columnNumber: 7
+            },
+            this
+          )
+        ),
+        videoUrl && /* @__PURE__ */ jsxDEV(
+          "div",
+          {
+            style: {
+              position: "absolute",
+              right: 18,
+              bottom: 18,
+              width: 165,
+              height: 300,
+              borderRadius: "28px",
+              overflow: "hidden",
+              background: "#000",
+              zIndex: 25,
+              boxShadow: "0 30px 80px rgba(0,0,0,0.55)",
+              border: "2px solid rgba(255,255,255,0.12)",
+              backdropFilter: "blur(20px)",
+              transform: "translateZ(0)"
+            },
+            children: [
+              /* @__PURE__ */ jsxDEV(
+                "div",
+                {
+                  style: {
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    zIndex: 5,
+                    padding: "10px 12px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    background: "linear-gradient(to bottom, rgba(0,0,0,0.65), transparent)"
+                  },
+                  children: [
+                    /* @__PURE__ */ jsxDEV(
+                      "div",
+                      {
+                        style: {
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8
+                        },
+                        children: [
+                          /* @__PURE__ */ jsxDEV(
+                            "div",
+                            {
+                              style: {
+                                width: 32,
+                                height: 32,
+                                borderRadius: "50%",
+                                background: "linear-gradient(135deg,#c9a84c,#7b1a1a)",
+                                display: "grid",
+                                placeItems: "center",
+                                color: "#fff",
+                                fontSize: "0.7rem",
+                                fontWeight: 700
+                              },
+                              children: "BT"
+                            },
+                            void 0,
+                            false,
+                            {
+                              fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                              lineNumber: 293,
+                              columnNumber: 9
+                            },
+                            this
+                          ),
+                          /* @__PURE__ */ jsxDEV("div", { children: [
+                            /* @__PURE__ */ jsxDEV(
+                              "div",
+                              {
+                                style: {
+                                  color: "#fff",
+                                  fontSize: "0.72rem",
+                                  fontWeight: 700,
+                                  lineHeight: 1
+                                },
+                                children: "Bael Tree"
+                              },
+                              void 0,
+                              false,
+                              {
+                                fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                                lineNumber: 311,
+                                columnNumber: 11
+                              },
+                              this
+                            ),
+                            /* @__PURE__ */ jsxDEV(
+                              "div",
+                              {
+                                style: {
+                                  color: "rgba(255,255,255,0.7)",
+                                  fontSize: "0.6rem",
+                                  marginTop: 2
+                                },
+                                children: "Luxury Stay"
+                              },
+                              void 0,
+                              false,
+                              {
+                                fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                                lineNumber: 322,
+                                columnNumber: 11
+                              },
+                              this
+                            )
+                          ] }, void 0, true, {
+                            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                            lineNumber: 310,
+                            columnNumber: 9
+                          }, this)
+                        ]
+                      },
+                      void 0,
+                      true,
+                      {
+                        fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                        lineNumber: 286,
+                        columnNumber: 7
+                      },
+                      this
+                    ),
+                    /* @__PURE__ */ jsxDEV(
+                      "div",
+                      {
+                        style: {
+                          color: "#fff",
+                          fontSize: "1rem",
+                          fontWeight: 700
+                        },
+                        children: "⋮"
+                      },
+                      void 0,
+                      false,
+                      {
+                        fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                        lineNumber: 334,
+                        columnNumber: 7
+                      },
+                      this
+                    )
+                  ]
+                },
+                void 0,
+                true,
+                {
+                  fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                  lineNumber: 271,
+                  columnNumber: 5
+                },
+                this
+              ),
+              /* @__PURE__ */ jsxDEV(
+                "video",
+                {
+                  ref: videoRef,
+                  src: videoUrl,
+                  autoPlay: true,
+                  muted: true,
+                  loop: true,
+                  playsInline: true,
+                  controls: true,
+                  style: {
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    display: "block"
+                  }
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                  lineNumber: 346,
+                  columnNumber: 5
+                },
+                this
+              ),
+              /* @__PURE__ */ jsxDEV(
+                "div",
+                {
+                  style: {
+                    position: "absolute",
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    padding: "14px",
+                    background: "linear-gradient(to top, rgba(0,0,0,0.8), transparent)",
+                    zIndex: 5
+                  },
+                  children: [
+                    /* @__PURE__ */ jsxDEV(
+                      "div",
+                      {
+                        style: {
+                          color: "#fff",
+                          fontSize: "0.72rem",
+                          fontWeight: 600,
+                          marginBottom: 4
+                        },
+                        children: "Luxury Room"
+                      },
+                      void 0,
+                      false,
+                      {
+                        fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                        lineNumber: 375,
+                        columnNumber: 7
+                      },
+                      this
+                    ),
+                    /* @__PURE__ */ jsxDEV(
+                      "div",
+                      {
+                        style: {
+                          color: "rgba(255,255,255,0.7)",
+                          fontSize: "0.62rem",
+                          lineHeight: 1.4
+                        },
+                        children: "Experience luxury hospitality at Bael Tree Hotels."
+                      },
+                      void 0,
+                      false,
+                      {
+                        fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                        lineNumber: 386,
+                        columnNumber: 7
+                      },
+                      this
+                    )
+                  ]
+                },
+                void 0,
+                true,
+                {
+                  fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                  lineNumber: 363,
+                  columnNumber: 5
+                },
+                this
+              )
+            ]
+          },
+          void 0,
+          true,
+          {
+            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+            lineNumber: 251,
+            columnNumber: 7
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV("div", { style: {
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.55) 100%)"
+        } }, void 0, false, {
+          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+          lineNumber: 402,
+          columnNumber: 7
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { style: {
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          background: "linear-gradient(90deg, rgba(0,0,0,0.2) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.2) 100%)"
+        } }, void 0, false, {
+          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+          lineNumber: 406,
+          columnNumber: 7
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { style: {
+          position: "absolute",
+          top: 12,
+          right: 12,
+          zIndex: 5,
+          display: "flex",
+          gap: "0.5rem"
+        }, children: [
+          /* @__PURE__ */ jsxDEV(
+            "button",
+            {
+              type: "button",
+              onClick: () => setIsWished((w) => !w),
+              "aria-label": "Wishlist",
+              style: {
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                background: "rgba(26,26,26,0.7)",
+                color: isWished ? "#e84c4c" : "#faf8f5",
+                border: "none",
+                cursor: "pointer",
+                display: "grid",
+                placeItems: "center",
+                backdropFilter: "blur(8px)",
+                transition: "all 0.2s ease"
+              },
+              children: /* @__PURE__ */ jsxDEV(Heart, { size: 15, fill: isWished ? "#e84c4c" : "none" }, void 0, false, {
+                fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                lineNumber: 430,
+                columnNumber: 11
+              }, this)
+            },
+            void 0,
+            false,
+            {
+              fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+              lineNumber: 416,
+              columnNumber: 9
+            },
+            this
+          ),
+          /* @__PURE__ */ jsxDEV(
+            "button",
+            {
+              type: "button",
+              onClick: () => setZoomed((z) => !z),
+              "aria-label": "Zoom",
+              style: {
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                background: "rgba(26,26,26,0.7)",
+                color: "#faf8f5",
+                border: "none",
+                cursor: "pointer",
+                display: "grid",
+                placeItems: "center",
+                backdropFilter: "blur(8px)",
+                transition: "all 0.2s ease"
+              },
+              children: /* @__PURE__ */ jsxDEV(ZoomIn, { size: 15 }, void 0, false, {
+                fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                lineNumber: 445,
+                columnNumber: 11
+              }, this)
+            },
+            void 0,
+            false,
+            {
+              fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+              lineNumber: 432,
+              columnNumber: 9
+            },
+            this
+          )
+        ] }, void 0, true, {
+          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+          lineNumber: 412,
+          columnNumber: 7
+        }, this),
+        totalSlides > 1 && !zoomed && /* @__PURE__ */ jsxDEV(Fragment, { children: [
+          /* @__PURE__ */ jsxDEV(
+            "button",
+            {
+              type: "button",
+              onClick: goPrev,
+              "aria-label": "Previous",
+              style: {
+                position: "absolute",
+                left: 12,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 44,
+                height: 44,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.12)",
+                backdropFilter: "blur(10px)",
+                color: "#fff",
+                border: "1px solid rgba(255,255,255,0.2)",
+                cursor: "pointer",
+                display: "grid",
+                placeItems: "center",
+                transition: "all 0.25s ease",
+                zIndex: 5
+              },
+              onMouseEnter: (e) => {
+                e.currentTarget.style.background = "rgba(201,168,76,0.85)";
+                e.currentTarget.style.color = "#1a1a1a";
+              },
+              onMouseLeave: (e) => {
+                e.currentTarget.style.background = "rgba(255,255,255,0.12)";
+                e.currentTarget.style.color = "#fff";
+              },
+              children: /* @__PURE__ */ jsxDEV(ChevronLeft, { size: 20 }, void 0, false, {
+                fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                lineNumber: 463,
+                columnNumber: 13
+              }, this)
+            },
+            void 0,
+            false,
+            {
+              fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+              lineNumber: 452,
+              columnNumber: 11
+            },
+            this
+          ),
+          /* @__PURE__ */ jsxDEV(
+            "button",
+            {
+              type: "button",
+              onClick: goNext,
+              "aria-label": "Next",
+              style: {
+                position: "absolute",
+                right: 12,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 44,
+                height: 44,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.12)",
+                backdropFilter: "blur(10px)",
+                color: "#fff",
+                border: "1px solid rgba(255,255,255,0.2)",
+                cursor: "pointer",
+                display: "grid",
+                placeItems: "center",
+                transition: "all 0.25s ease",
+                zIndex: 5
+              },
+              onMouseEnter: (e) => {
+                e.currentTarget.style.background = "rgba(201,168,76,0.85)";
+                e.currentTarget.style.color = "#1a1a1a";
+              },
+              onMouseLeave: (e) => {
+                e.currentTarget.style.background = "rgba(255,255,255,0.12)";
+                e.currentTarget.style.color = "#fff";
+              },
+              children: /* @__PURE__ */ jsxDEV(ChevronRight, { size: 20 }, void 0, false, {
+                fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                lineNumber: 476,
+                columnNumber: 13
+              }, this)
+            },
+            void 0,
+            false,
+            {
+              fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+              lineNumber: 465,
+              columnNumber: 11
+            },
+            this
+          )
+        ] }, void 0, true, {
+          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+          lineNumber: 451,
+          columnNumber: 7
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { style: {
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 5,
+          padding: "1rem 1rem 0.75rem",
+          display: "flex",
+          alignItems: "flex-end",
+          justifyContent: "space-between",
+          background: "linear-gradient(0deg, rgba(0,0,0,0.6) 0%, transparent 100%)"
+        }, children: [
+          /* @__PURE__ */ jsxDEV("div", { style: {
+            display: "flex",
+            gap: 6,
+            overflowX: "auto",
+            scrollbarWidth: "none",
+            maxWidth: "calc(100% - 120px)"
+          }, children: images.map(
+            (src, i) => /* @__PURE__ */ jsxDEV(
+              "button",
+              {
+                type: "button",
+                onClick: () => handleUserNav(i),
+                style: {
+                  flexShrink: 0,
+                  width: 48,
+                  height: 36,
+                  borderRadius: 8,
+                  overflow: "hidden",
+                  border: activeIndex === i ? "2px solid #c9a84c" : "2px solid rgba(255,255,255,0.25)",
+                  cursor: "pointer",
+                  padding: 0,
+                  transition: "all 0.25s ease",
+                  opacity: activeIndex === i ? 1 : 0.65
+                },
+                children: /* @__PURE__ */ jsxDEV("img", { src, alt: "", style: { width: "100%", height: "100%", objectFit: "cover" } }, void 0, false, {
+                  fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                  lineNumber: 508,
+                  columnNumber: 15
+                }, this)
+              },
+              i,
+              false,
+              {
+                fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                lineNumber: 495,
+                columnNumber: 11
+              },
+              this
+            )
+          ) }, void 0, false, {
+            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+            lineNumber: 489,
+            columnNumber: 9
+          }, this),
+          totalSlides > 1 && /* @__PURE__ */ jsxDEV(
+            "button",
+            {
+              type: "button",
+              onClick: togglePause,
+              "aria-label": autoScrollPaused ? "Resume auto-scroll" : "Pause auto-scroll",
+              style: {
+                position: "relative",
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                border: "none",
+                cursor: "pointer",
+                background: "rgba(26,26,26,0.6)",
+                backdropFilter: "blur(8px)",
+                display: "grid",
+                placeItems: "center",
+                flexShrink: 0
+              },
+              children: [
+                /* @__PURE__ */ jsxDEV("div", { style: { position: "absolute", inset: 0 }, children: /* @__PURE__ */ jsxDEV(ProgressRing, { progress: autoScrollPaused ? pausedProgressRef.current : progress, size: 36, stroke: 3 }, void 0, false, {
+                  fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                  lineNumber: 529,
+                  columnNumber: 15
+                }, this) }, void 0, false, {
+                  fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                  lineNumber: 528,
+                  columnNumber: 13
+                }, this),
+                autoScrollPaused ? /* @__PURE__ */ jsxDEV(Play, { size: 12, color: "#c9a84c", style: { marginLeft: 2 } }, void 0, false, {
+                  fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                  lineNumber: 532,
+                  columnNumber: 11
+                }, this) : /* @__PURE__ */ jsxDEV(Pause, { size: 12, color: "#c9a84c" }, void 0, false, {
+                  fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                  lineNumber: 533,
+                  columnNumber: 11
+                }, this)
+              ]
+            },
+            void 0,
+            true,
+            {
+              fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+              lineNumber: 516,
+              columnNumber: 9
+            },
+            this
+          )
+        ] }, void 0, true, {
+          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+          lineNumber: 482,
+          columnNumber: 7
+        }, this),
+        /* @__PURE__ */ jsxDEV("div", { style: {
+          position: "absolute",
+          top: 12,
+          left: 12,
+          zIndex: 5,
+          padding: "0.3rem 0.7rem",
+          borderRadius: 999,
+          background: "rgba(26,26,26,0.65)",
+          backdropFilter: "blur(8px)",
+          color: "#faf8f5",
+          fontSize: "0.75rem",
+          fontWeight: 600,
+          letterSpacing: "0.06em"
+        }, children: [
+          activeIndex + 1,
+          " / ",
+          totalSlides
+        ] }, void 0, true, {
+          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+          lineNumber: 539,
+          columnNumber: 7
+        }, this),
+        zoomed && /* @__PURE__ */ jsxDEV("div", { style: {
+          position: "absolute",
+          bottom: "3.5rem",
+          left: "50%",
+          transform: "translateX(-50%)",
+          padding: "0.35rem 0.85rem",
+          borderRadius: 999,
+          background: "rgba(201,168,76,0.9)",
+          color: "#1a1a1a",
+          fontSize: "0.72rem",
+          fontWeight: 700,
+          letterSpacing: "0.06em",
+          zIndex: 6,
+          pointerEvents: "none"
+        }, children: "Click to exit zoom" }, void 0, false, {
+          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+          lineNumber: 551,
+          columnNumber: 7
+        }, this)
+      ]
+    },
+    void 0,
+    true,
+    {
+      fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+      lineNumber: 202,
+      columnNumber: 5
+    },
+    this
+  );
+};
+_s(MediaGallery, "HAoKCWIHzIEngpTjpy2x95o4jF4=");
+_c3 = MediaGallery;
+const RoomDetailModal = ({ room, onClose }) => {
+  _s2();
+  const { openBooking } = useBooking();
+  const modalRef = useRef(null);
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+  if (!room) return null;
+  return /* @__PURE__ */ jsxDEV(
+    "div",
+    {
+      role: "dialog",
+      "aria-modal": "true",
+      "aria-label": `${room.name} details`,
+      style: {
+        position: "fixed",
+        inset: 0,
+        zIndex: 70,
+        display: "grid",
+        placeItems: "center",
+        padding: "1rem"
+      },
+      children: [
+        /* @__PURE__ */ jsxDEV(
+          "div",
+          {
+            onClick: onClose,
+            style: {
+              position: "absolute",
+              inset: 0,
+              background: "rgba(8,8,8,0.82)",
+              backdropFilter: "blur(16px)"
+            }
+          },
+          void 0,
+          false,
+          {
+            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+            lineNumber: 594,
+            columnNumber: 7
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV(
+          "div",
+          {
+            ref: modalRef,
+            style: {
+              position: "relative",
+              zIndex: 1,
+              width: "min(1100px, calc(100vw - 1rem))",
+              maxHeight: "94vh",
+              overflowY: "auto",
+              borderRadius: 32,
+              background: "linear-gradient(180deg, #fffdf9 0%, #faf8f5 100%)",
+              border: "1px solid rgba(201,168,76,0.3)",
+              boxShadow: "0 40px 120px rgba(0,0,0,0.35), 0 0 0 1px rgba(201,168,76,0.1)",
+              scrollbarWidth: "thin",
+              scrollbarColor: "rgba(201,168,76,0.3) transparent",
+              animation: "modalEntrance 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)"
+            },
+            children: [
+              /* @__PURE__ */ jsxDEV(CloseBtn, { onClick: onClose }, void 0, false, {
+                fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                lineNumber: 620,
+                columnNumber: 9
+              }, this),
+              /* @__PURE__ */ jsxDEV("div", { style: { borderRadius: "32px 32px 0 0", overflow: "hidden" }, children: /* @__PURE__ */ jsxDEV(
+                MediaGallery,
+                {
+                  images: room.images || [],
+                  videoUrl: room.videoUrl
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                  lineNumber: 624,
+                  columnNumber: 1
+                },
+                this
+              ) }, void 0, false, {
+                fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                lineNumber: 623,
+                columnNumber: 9
+              }, this),
+              /* @__PURE__ */ jsxDEV(
+                "div",
+                {
+                  style: {
+                    display: "grid",
+                    gridTemplateColumns: "1fr 340px",
+                    gap: "2rem",
+                    padding: "2rem"
+                  },
+                  className: "room-modal-grid",
+                  children: [
+                    /* @__PURE__ */ jsxDEV("div", { style: { display: "grid", gap: "1.75rem" }, children: [
+                      /* @__PURE__ */ jsxDEV("div", { children: [
+                        /* @__PURE__ */ jsxDEV("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: "0.6rem" }, children: [
+                          /* @__PURE__ */ jsxDEV("span", { style: { width: 32, height: 1, background: "linear-gradient(90deg, #c9a84c, transparent)" } }, void 0, false, {
+                            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                            lineNumber: 650,
+                            columnNumber: 17
+                          }, this),
+                          /* @__PURE__ */ jsxDEV("span", { style: {
+                            color: "#7b1a1a",
+                            fontFamily: "'Cinzel', serif",
+                            fontSize: "0.75rem",
+                            letterSpacing: "0.18em",
+                            textTransform: "uppercase"
+                          }, children: room.tagline }, void 0, false, {
+                            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                            lineNumber: 651,
+                            columnNumber: 17
+                          }, this)
+                        ] }, void 0, true, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 649,
+                          columnNumber: 15
+                        }, this),
+                        /* @__PURE__ */ jsxDEV("h2", { style: {
+                          fontFamily: "'Playfair Display', serif",
+                          fontSize: "clamp(1.9rem, 3.5vw, 2.9rem)",
+                          lineHeight: 1.1,
+                          margin: "0 0 0.6rem",
+                          color: "#1a1a1a"
+                        }, children: room.name }, void 0, false, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 658,
+                          columnNumber: 15
+                        }, this),
+                        /* @__PURE__ */ jsxDEV("div", { style: { display: "flex", alignItems: "center", gap: 6 }, children: [
+                          [1, 2, 3, 4, 5].map(
+                            (s) => /* @__PURE__ */ jsxDEV(Star, { size: 14, fill: "#c9a84c", color: "#c9a84c" }, s, false, {
+                              fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                              lineNumber: 666,
+                              columnNumber: 17
+                            }, this)
+                          ),
+                          /* @__PURE__ */ jsxDEV("span", { style: { fontSize: "0.82rem", color: "#8f8579", marginLeft: 4 }, children: [
+                            "Premium Luxury · ",
+                            room.totalRooms,
+                            " Rooms Available"
+                          ] }, void 0, true, {
+                            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                            lineNumber: 668,
+                            columnNumber: 17
+                          }, this)
+                        ] }, void 0, true, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 664,
+                          columnNumber: 15
+                        }, this)
+                      ] }, void 0, true, {
+                        fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                        lineNumber: 648,
+                        columnNumber: 13
+                      }, this),
+                      /* @__PURE__ */ jsxDEV("p", { style: {
+                        fontFamily: "'Cormorant Garamond', serif",
+                        fontSize: "1.15rem",
+                        lineHeight: 1.85,
+                        color: "rgba(26,26,26,0.78)",
+                        borderLeft: "3px solid rgba(201,168,76,0.4)",
+                        paddingLeft: "1rem"
+                      }, children: room.description }, void 0, false, {
+                        fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                        lineNumber: 675,
+                        columnNumber: 13
+                      }, this),
+                      room.amenities?.length > 0 && /* @__PURE__ */ jsxDEV("div", { children: [
+                        /* @__PURE__ */ jsxDEV("h4", { style: {
+                          fontFamily: "'Cinzel', serif",
+                          fontSize: "0.78rem",
+                          letterSpacing: "0.15em",
+                          textTransform: "uppercase",
+                          color: "#7b1a1a",
+                          marginBottom: "0.9rem",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8
+                        }, children: [
+                          /* @__PURE__ */ jsxDEV("span", { style: { width: 20, height: 1, background: "#c9a84c", display: "inline-block" } }, void 0, false, {
+                            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                            lineNumber: 692,
+                            columnNumber: 19
+                          }, this),
+                          "Room Amenities"
+                        ] }, void 0, true, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 686,
+                          columnNumber: 17
+                        }, this),
+                        /* @__PURE__ */ jsxDEV("div", { style: {
+                          display: "grid",
+                          gridTemplateColumns: "repeat(auto-fill, minmax(175px, 1fr))",
+                          gap: "0.6rem"
+                        }, children: room.amenities.map((amenity) => {
+                          const Icon = AMENITY_ICONS[amenity] || Check;
+                          return /* @__PURE__ */ jsxDEV(
+                            "div",
+                            {
+                              style: {
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 10,
+                                padding: "0.7rem 1rem",
+                                borderRadius: 14,
+                                background: "rgba(255,255,255,0.85)",
+                                border: "1px solid rgba(201,168,76,0.18)",
+                                fontSize: "0.85rem",
+                                color: "#2c2c2c",
+                                transition: "all 0.25s ease",
+                                cursor: "default"
+                              },
+                              onMouseEnter: (e) => {
+                                e.currentTarget.style.background = "rgba(201,168,76,0.08)";
+                                e.currentTarget.style.borderColor = "rgba(201,168,76,0.4)";
+                              },
+                              onMouseLeave: (e) => {
+                                e.currentTarget.style.background = "rgba(255,255,255,0.85)";
+                                e.currentTarget.style.borderColor = "rgba(201,168,76,0.18)";
+                              },
+                              children: [
+                                /* @__PURE__ */ jsxDEV(Icon, { size: 15, color: "#c9a84c" }, void 0, false, {
+                                  fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                                  lineNumber: 715,
+                                  columnNumber: 25
+                                }, this),
+                                /* @__PURE__ */ jsxDEV("span", { children: amenity }, void 0, false, {
+                                  fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                                  lineNumber: 716,
+                                  columnNumber: 25
+                                }, this)
+                              ]
+                            },
+                            amenity,
+                            true,
+                            {
+                              fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                              lineNumber: 703,
+                              columnNumber: 21
+                            },
+                            this
+                          );
+                        }) }, void 0, false, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 695,
+                          columnNumber: 17
+                        }, this)
+                      ] }, void 0, true, {
+                        fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                        lineNumber: 685,
+                        columnNumber: 13
+                      }, this),
+                      /* @__PURE__ */ jsxDEV("div", { style: {
+                        display: "grid",
+                        gridTemplateColumns: "repeat(3, 1fr)",
+                        gap: "0.85rem"
+                      }, children: [
+                        { label: "Total Rooms", value: room.totalRooms, icon: "🏨" },
+                        { label: "Max Guests", value: room.category === "suite" ? "4" : room.category === "premium" ? "3" : "2", icon: "👥" },
+                        { label: "Status", value: room.isAvailable ? "Available" : "Unavailable", icon: room.isAvailable ? "✓" : "✗", color: room.isAvailable ? "#73d98f" : "#ff8f8f" }
+                      ].map(
+                        ({ label, value, icon, color }) => /* @__PURE__ */ jsxDEV("div", { style: {
+                          padding: "1.1rem",
+                          borderRadius: 20,
+                          textAlign: "center",
+                          background: "linear-gradient(145deg, rgba(26,26,26,0.94), rgba(123,26,26,0.88))",
+                          color: "#faf8f5",
+                          border: "1px solid rgba(201,168,76,0.15)"
+                        }, children: [
+                          /* @__PURE__ */ jsxDEV("div", { style: { fontSize: "1.1rem", marginBottom: 4 }, children: icon }, void 0, false, {
+                            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                            lineNumber: 739,
+                            columnNumber: 19
+                          }, this),
+                          /* @__PURE__ */ jsxDEV("div", { style: {
+                            fontFamily: "'Playfair Display', serif",
+                            fontSize: "1.5rem",
+                            color: color || "#c9a84c"
+                          }, children: value }, void 0, false, {
+                            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                            lineNumber: 740,
+                            columnNumber: 19
+                          }, this),
+                          /* @__PURE__ */ jsxDEV("div", { style: { fontSize: "0.7rem", color: "rgba(250,248,245,0.6)", letterSpacing: "0.08em", textTransform: "uppercase", marginTop: 2 }, children: label }, void 0, false, {
+                            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                            lineNumber: 744,
+                            columnNumber: 19
+                          }, this)
+                        ] }, label, true, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 733,
+                          columnNumber: 15
+                        }, this)
+                      ) }, void 0, false, {
+                        fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                        lineNumber: 725,
+                        columnNumber: 13
+                      }, this),
+                      /* @__PURE__ */ jsxDEV("div", { style: {
+                        padding: "1.25rem",
+                        borderRadius: 20,
+                        background: "linear-gradient(135deg, rgba(201,168,76,0.06), rgba(201,168,76,0.02))",
+                        border: "1px solid rgba(201,168,76,0.18)"
+                      }, children: [
+                        /* @__PURE__ */ jsxDEV("h4", { style: {
+                          fontFamily: "'Cinzel', serif",
+                          fontSize: "0.75rem",
+                          letterSpacing: "0.15em",
+                          textTransform: "uppercase",
+                          color: "#7b1a1a",
+                          marginBottom: "0.75rem"
+                        }, children: "Stay Policies" }, void 0, false, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 755,
+                          columnNumber: 15
+                        }, this),
+                        /* @__PURE__ */ jsxDEV("div", { style: { display: "grid", gap: "0.5rem" }, children: [
+                          "Check-in from 2:00 PM · Check-out by 11:00 AM",
+                          "Free cancellation within 24 hours of booking",
+                          "Complimentary breakfast for Premium & Suite rooms",
+                          "Airport transfer available on request"
+                        ].map(
+                          (item) => /* @__PURE__ */ jsxDEV("div", { style: { display: "flex", gap: 10, alignItems: "flex-start", fontSize: "0.86rem", color: "#5a5a5a" }, children: [
+                            /* @__PURE__ */ jsxDEV(Check, { size: 14, color: "#73d98f", style: { flexShrink: 0, marginTop: 2 } }, void 0, false, {
+                              fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                              lineNumber: 768,
+                              columnNumber: 21
+                            }, this),
+                            item
+                          ] }, item, true, {
+                            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                            lineNumber: 767,
+                            columnNumber: 17
+                          }, this)
+                        ) }, void 0, false, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 760,
+                          columnNumber: 15
+                        }, this)
+                      ] }, void 0, true, {
+                        fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                        lineNumber: 750,
+                        columnNumber: 13
+                      }, this)
+                    ] }, void 0, true, {
+                      fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                      lineNumber: 645,
+                      columnNumber: 11
+                    }, this),
+                    /* @__PURE__ */ jsxDEV("div", { children: /* @__PURE__ */ jsxDEV("div", { style: {
+                      position: "sticky",
+                      top: "1rem",
+                      borderRadius: 26,
+                      background: "linear-gradient(180deg, #fff 0%, #fffdf9 100%)",
+                      border: "1px solid rgba(201,168,76,0.35)",
+                      boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
+                      padding: "1.5rem",
+                      display: "grid",
+                      gap: "1rem"
+                    }, children: [
+                      /* @__PURE__ */ jsxDEV("div", { style: {
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "0.5rem 0.85rem",
+                        borderRadius: 999,
+                        background: room.isAvailable ? "rgba(115,217,143,0.1)" : "rgba(255,143,143,0.1)",
+                        border: `1px solid ${room.isAvailable ? "rgba(115,217,143,0.35)" : "rgba(255,143,143,0.35)"}`,
+                        width: "fit-content"
+                      }, children: [
+                        /* @__PURE__ */ jsxDEV("div", { style: {
+                          width: 8,
+                          height: 8,
+                          borderRadius: "50%",
+                          background: room.isAvailable ? "#73d98f" : "#ff8f8f",
+                          boxShadow: `0 0 8px ${room.isAvailable ? "rgba(115,217,143,0.6)" : "rgba(255,143,143,0.6)"}`,
+                          animation: "statusPulse 2s ease-in-out infinite"
+                        } }, void 0, false, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 796,
+                          columnNumber: 17
+                        }, this),
+                        /* @__PURE__ */ jsxDEV("span", { style: { fontSize: "0.8rem", fontWeight: 600, color: room.isAvailable ? "#1f7c2d" : "#aa2c2c" }, children: room.isAvailable ? "Available to Book" : "Currently Unavailable" }, void 0, false, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 802,
+                          columnNumber: 17
+                        }, this)
+                      ] }, void 0, true, {
+                        fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                        lineNumber: 789,
+                        columnNumber: 15
+                      }, this),
+                      /* @__PURE__ */ jsxDEV("div", { style: {
+                        padding: "1rem 1.1rem",
+                        borderRadius: 18,
+                        background: "rgba(201,168,76,0.07)",
+                        border: "1px solid rgba(201,168,76,0.22)"
+                      }, children: [
+                        /* @__PURE__ */ jsxDEV("div", { style: { display: "flex", alignItems: "center", gap: 8, color: "#2c2c2c", marginBottom: 6 }, children: [
+                          /* @__PURE__ */ jsxDEV(BedDouble, { size: 15, color: "#c9a84c" }, void 0, false, {
+                            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                            lineNumber: 814,
+                            columnNumber: 19
+                          }, this),
+                          /* @__PURE__ */ jsxDEV("span", { style: { fontFamily: "'Cinzel', serif", fontSize: "0.72rem", letterSpacing: "0.1em", textTransform: "uppercase" }, children: "Single Occupancy" }, void 0, false, {
+                            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                            lineNumber: 815,
+                            columnNumber: 19
+                          }, this)
+                        ] }, void 0, true, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 813,
+                          columnNumber: 17
+                        }, this),
+                        /* @__PURE__ */ jsxDEV("div", { style: { fontFamily: "'Playfair Display', serif", fontSize: "2rem", color: "#1a1a1a", lineHeight: 1 }, children: formatCurrency(room.singlePrice) }, void 0, false, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 819,
+                          columnNumber: 17
+                        }, this),
+                        /* @__PURE__ */ jsxDEV("div", { style: { fontSize: "0.74rem", color: "#8f8579", marginTop: 4 }, children: "per night · taxes extra" }, void 0, false, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 822,
+                          columnNumber: 17
+                        }, this)
+                      ] }, void 0, true, {
+                        fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                        lineNumber: 808,
+                        columnNumber: 15
+                      }, this),
+                      /* @__PURE__ */ jsxDEV("div", { style: {
+                        padding: "1rem 1.1rem",
+                        borderRadius: 18,
+                        background: "rgba(123,26,26,0.05)",
+                        border: "1px solid rgba(123,26,26,0.15)"
+                      }, children: [
+                        /* @__PURE__ */ jsxDEV("div", { style: { display: "flex", alignItems: "center", gap: 8, color: "#2c2c2c", marginBottom: 6 }, children: [
+                          /* @__PURE__ */ jsxDEV(Users, { size: 15, color: "#7b1a1a" }, void 0, false, {
+                            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                            lineNumber: 832,
+                            columnNumber: 19
+                          }, this),
+                          /* @__PURE__ */ jsxDEV("span", { style: { fontFamily: "'Cinzel', serif", fontSize: "0.72rem", letterSpacing: "0.1em", textTransform: "uppercase" }, children: "Double Occupancy" }, void 0, false, {
+                            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                            lineNumber: 833,
+                            columnNumber: 19
+                          }, this)
+                        ] }, void 0, true, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 831,
+                          columnNumber: 17
+                        }, this),
+                        /* @__PURE__ */ jsxDEV("div", { style: { fontFamily: "'Playfair Display', serif", fontSize: "2rem", color: "#1a1a1a", lineHeight: 1 }, children: formatCurrency(room.doublePrice) }, void 0, false, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 837,
+                          columnNumber: 17
+                        }, this),
+                        /* @__PURE__ */ jsxDEV("div", { style: { fontSize: "0.74rem", color: "#8f8579", marginTop: 4 }, children: "per night · taxes extra" }, void 0, false, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 840,
+                          columnNumber: 17
+                        }, this)
+                      ] }, void 0, true, {
+                        fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                        lineNumber: 826,
+                        columnNumber: 15
+                      }, this),
+                      /* @__PURE__ */ jsxDEV(
+                        "button",
+                        {
+                          type: "button",
+                          onClick: () => {
+                            onClose();
+                            openBooking(room);
+                          },
+                          disabled: !room.isAvailable,
+                          style: {
+                            width: "100%",
+                            padding: "1.1rem",
+                            borderRadius: 999,
+                            border: "none",
+                            background: room.isAvailable ? "linear-gradient(135deg, #e8d5a3, #c9a84c)" : "rgba(200,200,200,0.4)",
+                            color: room.isAvailable ? "#1a1a1a" : "#888",
+                            fontWeight: 700,
+                            fontSize: "0.95rem",
+                            cursor: room.isAvailable ? "pointer" : "not-allowed",
+                            boxShadow: room.isAvailable ? "0 12px 28px rgba(201,168,76,0.3)" : "none",
+                            transition: "all 0.3s ease",
+                            letterSpacing: "0.04em",
+                            fontFamily: "'Cinzel', serif"
+                          },
+                          onMouseEnter: (e) => {
+                            if (room.isAvailable) {
+                              e.currentTarget.style.transform = "translateY(-2px)";
+                              e.currentTarget.style.boxShadow = "0 18px 40px rgba(201,168,76,0.45)";
+                            }
+                          },
+                          onMouseLeave: (e) => {
+                            e.currentTarget.style.transform = "none";
+                            e.currentTarget.style.boxShadow = room.isAvailable ? "0 12px 28px rgba(201,168,76,0.3)" : "none";
+                          },
+                          children: "Reserve This Room"
+                        },
+                        void 0,
+                        false,
+                        {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 844,
+                          columnNumber: 15
+                        },
+                        this
+                      ),
+                      /* @__PURE__ */ jsxDEV(
+                        "button",
+                        {
+                          type: "button",
+                          onClick: onClose,
+                          style: {
+                            width: "100%",
+                            padding: "0.8rem",
+                            borderRadius: 999,
+                            border: "1px solid rgba(201,168,76,0.3)",
+                            background: "transparent",
+                            color: "#5a5a5a",
+                            fontSize: "0.85rem",
+                            cursor: "pointer",
+                            transition: "all 0.25s ease"
+                          },
+                          onMouseEnter: (e) => e.currentTarget.style.background = "rgba(201,168,76,0.08)",
+                          onMouseLeave: (e) => e.currentTarget.style.background = "transparent",
+                          children: "Continue Browsing"
+                        },
+                        void 0,
+                        false,
+                        {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 867,
+                          columnNumber: 15
+                        },
+                        this
+                      ),
+                      /* @__PURE__ */ jsxDEV("div", { style: {
+                        display: "grid",
+                        gap: "0.45rem",
+                        padding: "0.9rem",
+                        borderRadius: 16,
+                        background: "rgba(26,26,26,0.03)",
+                        border: "1px solid rgba(201,168,76,0.1)"
+                      }, children: [
+                        "Free cancellation within 24 hours",
+                        "Complimentary Wi-Fi throughout",
+                        "Check-in 2PM · Check-out 11AM",
+                        "Secure Razorpay payments"
+                      ].map(
+                        (item) => /* @__PURE__ */ jsxDEV("div", { style: { display: "flex", gap: 8, alignItems: "center", fontSize: "0.78rem", color: "#5a5a5a" }, children: [
+                          /* @__PURE__ */ jsxDEV(Check, { size: 12, color: "#73d98f" }, void 0, false, {
+                            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                            lineNumber: 899,
+                            columnNumber: 21
+                          }, this),
+                          item
+                        ] }, item, true, {
+                          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                          lineNumber: 898,
+                          columnNumber: 17
+                        }, this)
+                      ) }, void 0, false, {
+                        fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                        lineNumber: 885,
+                        columnNumber: 15
+                      }, this)
+                    ] }, void 0, true, {
+                      fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                      lineNumber: 778,
+                      columnNumber: 13
+                    }, this) }, void 0, false, {
+                      fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                      lineNumber: 777,
+                      columnNumber: 11
+                    }, this)
+                  ]
+                },
+                void 0,
+                true,
+                {
+                  fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+                  lineNumber: 635,
+                  columnNumber: 9
+                },
+                this
+              )
+            ]
+          },
+          void 0,
+          true,
+          {
+            fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+            lineNumber: 604,
+            columnNumber: 7
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV("style", { children: `
+        @keyframes modalEntrance {
+          from { opacity: 0; transform: scale(0.94) translateY(20px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes statusPulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
+        @media (max-width: 768px) {
+          .room-modal-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      ` }, void 0, false, {
+          fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+          lineNumber: 909,
+          columnNumber: 7
+        }, this)
+      ]
+    },
+    void 0,
+    true,
+    {
+      fileName: "C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx",
+      lineNumber: 583,
+      columnNumber: 5
+    },
+    this
+  );
+};
+_s2(RoomDetailModal, "uLT0yrCYpVpqkCP0T9aQRLVQawg=", false, function() {
+  return [useBooking];
+});
+_c4 = RoomDetailModal;
+export default RoomDetailModal;
+var _c, _c2, _c3, _c4;
+$RefreshReg$(_c, "ProgressRing");
+$RefreshReg$(_c2, "CloseBtn");
+$RefreshReg$(_c3, "MediaGallery");
+$RefreshReg$(_c4, "RoomDetailModal");
+if (import.meta.hot && !inWebWorker) {
+  window.$RefreshReg$ = prevRefreshReg;
+  window.$RefreshSig$ = prevRefreshSig;
+}
+if (import.meta.hot && !inWebWorker) {
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Users/velch/Downloads/BaelTreeHotels/client/src/components/RoomDetailModal.jsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+
+//# sourceMappingURL=data:application/json;base64,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QUFBO0FBQUE7QUFBQSwyQkE4SEEsS0EvSEY7QUFBQTtBQUFBO0FBQUE7QUFBQSwyQkFnSUE7QUFBQTtBQUFBO0FBQUEsZ0JBOVFGO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQSxjQStRQTtBQUFBO0FBQUE7QUFBQSxVQTlTRjtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUEsUUErU0E7QUFBQSxRQUVBLHVCQUFDLFdBQU87QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBLFdBQVI7QUFBQTtBQUFBO0FBQUE7QUFBQSxlQWNFO0FBQUE7QUFBQTtBQUFBLElBcFZKO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQSxFQXFWQTtBQUVKO0FBQUVuQyxJQXhXSUgsaUJBQWU7QUFBQSxVQUNLdkgsVUFBVTtBQUFBO0FBQUEsTUFEOUJ1SDtBQTBXTixlQUFlQTtBQUFnQixJQUFBekcsSUFBQW9CLEtBQUE4SCxLQUFBQztBQUFBLGFBQUFuSixJQUFBO0FBQUEsYUFBQW9CLEtBQUE7QUFBQSxhQUFBOEgsS0FBQTtBQUFBLGFBQUFDLEtBQUEiLCJuYW1lcyI6WyJ1c2VFZmZlY3QiLCJ1c2VSZWYiLCJ1c2VTdGF0ZSIsInVzZUNhbGxiYWNrIiwiWCIsIkNoZXZyb25MZWZ0IiwiQ2hldnJvblJpZ2h0IiwiUGxheSIsIlBhdXNlIiwiQmVkRG91YmxlIiwiVXNlcnMiLCJDaGVjayIsIlN0YXIiLCJDYWxlbmRhciIsIldpZmkiLCJDb2ZmZWUiLCJUdiIsIlNoaWVsZCIsIkNhciIsIlBob25lIiwiWm9vbUluIiwiU2hhcmUyIiwiSGVhcnQiLCJ1c2VCb29raW5nIiwiZm9ybWF0Q3VycmVuY3kiLCJBTUVOSVRZX0lDT05TIiwiUHJvZ3Jlc3NSaW5nIiwicHJvZ3Jlc3MiLCJzaXplIiwic3Ryb2tlIiwicmFkaXVzIiwiY2lyY3VtZmVyZW5jZSIsIk1hdGgiLCJQSSIsInN0cm9rZURhc2hvZmZzZXQiLCJ0cmFuc2Zvcm0iLCJ0cmFuc2l0aW9uIiwiX2MiLCJDbG9zZUJ0biIsIm9uQ2xpY2siLCJwb3NpdGlvbiIsInRvcCIsInJpZ2h0IiwiekluZGV4Iiwid2lkdGgiLCJoZWlnaHQiLCJib3JkZXJSYWRpdXMiLCJiYWNrZ3JvdW5kIiwiY29sb3IiLCJkaXNwbGF5IiwicGxhY2VJdGVtcyIsImJvcmRlciIsImN1cnNvciIsImJhY2tkcm9wRmlsdGVyIiwiZSIsImN1cnJlbnRUYXJnZXQiLCJzdHlsZSIsIl9jMiIsIkFVVE9fU0NST0xMX0RVUkFUSU9OIiwiTWVkaWFHYWxsZXJ5IiwiaW1hZ2VzIiwidmlkZW9VcmwiLCJfcyIsImFjdGl2ZUluZGV4Iiwic2V0QWN0aXZlSW5kZXgiLCJpc1BsYXlpbmciLCJzZXRJc1BsYXlpbmciLCJhdXRvU2Nyb2xsUGF1c2VkIiwic2V0QXV0b1Njcm9sbFBhdXNlZCIsInNldFByb2dyZXNzIiwiaXNXaXNoZWQiLCJzZXRJc1dpc2hlZCIsInpvb21lZCIsInNldFpvb21lZCIsInpvb21Qb3MiLCJzZXRab29tUG9zIiwieCIsInkiLCJ2aWRlb1JlZiIsImludGVydmFsUmVmIiwicHJvZ3Jlc3NSZWYiLCJzdGFydFRpbWVSZWYiLCJwYXVzZWRQcm9ncmVzc1JlZiIsImFsbE1lZGlhIiwidG90YWxTbGlkZXMiLCJsZW5ndGgiLCJzdGFydEF1dG9TY3JvbGwiLCJjbGVhckludGVydmFsIiwiY3VycmVudCIsIkRhdGUiLCJub3ciLCJzZXRJbnRlcnZhbCIsImVsYXBzZWQiLCJwY3QiLCJtaW4iLCJzZXRUaW1lb3V0IiwiaSIsInN0b3BBdXRvU2Nyb2xsIiwicmVzdW1lQXV0b1Njcm9sbCIsImhhbmRsZVVzZXJOYXYiLCJuZXdJbmRleCIsImdvUHJldiIsImdvTmV4dCIsInRvZ2dsZVBsYXkiLCJwYXVzZSIsInBsYXkiLCJoYW5kbGVNb3VzZU1vdmUiLCJyZWN0IiwiZ2V0Qm91bmRpbmdDbGllbnRSZWN0IiwiY2xpZW50WCIsImxlZnQiLCJjbGllbnRZIiwidG9nZ2xlUGF1c2UiLCJvdmVyZmxvdyIsImFzcGVjdFJhdGlvIiwibWFwIiwic3JjIiwiaW5zZXQiLCJvcGFjaXR5IiwieiIsIm9iamVjdEZpdCIsInRyYW5zZm9ybU9yaWdpbiIsInVzZXJTZWxlY3QiLCJib3R0b20iLCJib3hTaGFkb3ciLCJwYWRkaW5nIiwiYWxpZ25JdGVtcyIsImp1c3RpZnlDb250ZW50IiwiZ2FwIiwiZm9udFNpemUiLCJmb250V2VpZ2h0IiwibGluZUhlaWdodCIsIm1hcmdpblRvcCIsIm1hcmdpbkJvdHRvbSIsInBvaW50ZXJFdmVudHMiLCJ3Iiwib3ZlcmZsb3dYIiwic2Nyb2xsYmFyV2lkdGgiLCJtYXhXaWR0aCIsImZsZXhTaHJpbmsiLCJtYXJnaW5MZWZ0IiwibGV0dGVyU3BhY2luZyIsIlJvb21EZXRhaWxNb2RhbCIsInJvb20iLCJvbkNsb3NlIiwiX3MyIiwib3BlbkJvb2tpbmciLCJtb2RhbFJlZiIsImRvY3VtZW50IiwiYm9keSIsIm9uS2V5Iiwia2V5Iiwid2luZG93IiwiYWRkRXZlbnRMaXN0ZW5lciIsInJlbW92ZUV2ZW50TGlzdGVuZXIiLCJuYW1lIiwibWF4SGVpZ2h0Iiwib3ZlcmZsb3dZIiwic2Nyb2xsYmFyQ29sb3IiLCJhbmltYXRpb24iLCJncmlkVGVtcGxhdGVDb2x1bW5zIiwiZm9udEZhbWlseSIsInRleHRUcmFuc2Zvcm0iLCJ0YWdsaW5lIiwibWFyZ2luIiwicyIsInRvdGFsUm9vbXMiLCJib3JkZXJMZWZ0IiwicGFkZGluZ0xlZnQiLCJkZXNjcmlwdGlvbiIsImFtZW5pdGllcyIsImFtZW5pdHkiLCJJY29uIiwiYm9yZGVyQ29sb3IiLCJsYWJlbCIsInZhbHVlIiwiaWNvbiIsImNhdGVnb3J5IiwiaXNBdmFpbGFibGUiLCJ0ZXh0QWxpZ24iLCJpdGVtIiwic2luZ2xlUHJpY2UiLCJkb3VibGVQcmljZSIsIl9jMyIsIl9jNCJdLCJpZ25vcmVMaXN0IjpbXSwic291cmNlcyI6WyJSb29tRGV0YWlsTW9kYWwuanN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IHVzZUVmZmVjdCwgdXNlUmVmLCB1c2VTdGF0ZSwgdXNlQ2FsbGJhY2sgfSBmcm9tIFwicmVhY3RcIjtcclxuaW1wb3J0IHtcclxuICBYLCBDaGV2cm9uTGVmdCwgQ2hldnJvblJpZ2h0LCBQbGF5LCBQYXVzZSxcclxuICBCZWREb3VibGUsIFVzZXJzLCBDaGVjaywgU3RhciwgQ2FsZW5kYXIsXHJcbiAgV2lmaSwgQ29mZmVlLCBUdiwgU2hpZWxkLCBDYXIsIFBob25lLFxyXG4gIFpvb21JbiwgU2hhcmUyLCBIZWFydFxyXG59IGZyb20gXCJsdWNpZGUtcmVhY3RcIjtcclxuaW1wb3J0IHsgdXNlQm9va2luZyB9IGZyb20gXCIuLi9jb250ZXh0L0Jvb2tpbmdDb250ZXh0XCI7XHJcbmltcG9ydCB7IGZvcm1hdEN1cnJlbmN5IH0gZnJvbSBcIi4uL3V0aWxzL2RhdGVIZWxwZXJzXCI7XHJcblxyXG4vKiDilIDilIDilIAgaWNvbiBtYXAgZm9yIGFtZW5pdHkgcGlsbHMg4pSA4pSA4pSAICovXHJcbmNvbnN0IEFNRU5JVFlfSUNPTlMgPSB7XHJcbiAgXCJDb21wbGltZW50YXJ5IFdpLUZpXCI6IFdpZmksXHJcbiAgXCJTbWFydCBUViB3aXRoIE9UVFwiOiBUdixcclxuICBcIk1pbmkgYmFyXCI6IENvZmZlZSxcclxuICBcIlByZW1pdW0gdG9pbGV0cmllc1wiOiBTdGFyLFxyXG4gIFwiQWlycG9ydCB0cmFuc2ZlclwiOiBDYXIsXHJcbiAgXCJJbi1yb29tIHNhZmVcIjogU2hpZWxkLFxyXG4gIFwiV29yayBkZXNrXCI6IENhbGVuZGFyLFxyXG4gIFwiVHJhdmVsIGRlc2sgYXNzaXN0YW5jZVwiOiBQaG9uZSxcclxufTtcclxuXHJcbi8qIOKUgOKUgOKUgCBBdXRvLXNjcm9sbCBwcm9ncmVzcyByaW5nIOKUgOKUgOKUgCAqL1xyXG5jb25zdCBQcm9ncmVzc1JpbmcgPSAoeyBwcm9ncmVzcywgc2l6ZSA9IDM2LCBzdHJva2UgPSAzIH0pID0+IHtcclxuICBjb25zdCByYWRpdXMgPSAoc2l6ZSAtIHN0cm9rZSAqIDIpIC8gMjtcclxuICBjb25zdCBjaXJjdW1mZXJlbmNlID0gcmFkaXVzICogMiAqIE1hdGguUEk7XHJcbiAgY29uc3Qgc3Ryb2tlRGFzaG9mZnNldCA9IGNpcmN1bWZlcmVuY2UgLSAocHJvZ3Jlc3MgLyAxMDApICogY2lyY3VtZmVyZW5jZTtcclxuXHJcbiAgcmV0dXJuIChcclxuICAgIDxzdmcgd2lkdGg9e3NpemV9IGhlaWdodD17c2l6ZX0gc3R5bGU9e3sgdHJhbnNmb3JtOiBcInJvdGF0ZSgtOTBkZWcpXCIgfX0+XHJcbiAgICAgIDxjaXJjbGVcclxuICAgICAgICBzdHJva2U9XCJyZ2JhKDI1NSwyNTUsMjU1LDAuMilcIlxyXG4gICAgICAgIHN0cm9rZVdpZHRoPXtzdHJva2V9XHJcbiAgICAgICAgZmlsbD1cInRyYW5zcGFyZW50XCJcclxuICAgICAgICByPXtyYWRpdXN9XHJcbiAgICAgICAgY3g9e3NpemUgLyAyfVxyXG4gICAgICAgIGN5PXtzaXplIC8gMn1cclxuICAgICAgLz5cclxuICAgICAgPGNpcmNsZVxyXG4gICAgICAgIHN0cm9rZT1cIiNjOWE4NGNcIlxyXG4gICAgICAgIHN0cm9rZVdpZHRoPXtzdHJva2V9XHJcbiAgICAgICAgZmlsbD1cInRyYW5zcGFyZW50XCJcclxuICAgICAgICByPXtyYWRpdXN9XHJcbiAgICAgICAgY3g9e3NpemUgLyAyfVxyXG4gICAgICAgIGN5PXtzaXplIC8gMn1cclxuICAgICAgICBzdHJva2VEYXNoYXJyYXk9e2Ake2NpcmN1bWZlcmVuY2V9ICR7Y2lyY3VtZmVyZW5jZX1gfVxyXG4gICAgICAgIHN0cm9rZURhc2hvZmZzZXQ9e3N0cm9rZURhc2hvZmZzZXR9XHJcbiAgICAgICAgc3Ryb2tlTGluZWNhcD1cInJvdW5kXCJcclxuICAgICAgICBzdHlsZT17eyB0cmFuc2l0aW9uOiBcInN0cm9rZS1kYXNob2Zmc2V0IDAuMXMgbGluZWFyXCIgfX1cclxuICAgICAgLz5cclxuICAgIDwvc3ZnPlxyXG4gICk7XHJcbn07XHJcblxyXG4vKiDilIDilIDilIAgRmxvYXRpbmcgY2xvc2UgYnV0dG9uIOKUgOKUgOKUgCAqL1xyXG5jb25zdCBDbG9zZUJ0biA9ICh7IG9uQ2xpY2sgfSkgPT4gKFxyXG4gIDxidXR0b25cclxuICAgIHR5cGU9XCJidXR0b25cIlxyXG4gICAgb25DbGljaz17b25DbGlja31cclxuICAgIGFyaWEtbGFiZWw9XCJDbG9zZSByb29tIGRldGFpbHNcIlxyXG4gICAgc3R5bGU9e3tcclxuICAgICAgcG9zaXRpb246IFwiYWJzb2x1dGVcIixcclxuICAgICAgdG9wOiBcIjFyZW1cIixcclxuICAgICAgcmlnaHQ6IFwiMXJlbVwiLFxyXG4gICAgICB6SW5kZXg6IDEwLFxyXG4gICAgICB3aWR0aDogNDQsXHJcbiAgICAgIGhlaWdodDogNDQsXHJcbiAgICAgIGJvcmRlclJhZGl1czogXCI1MCVcIixcclxuICAgICAgYmFja2dyb3VuZDogXCJyZ2JhKDI2LDI2LDI2LDAuODUpXCIsXHJcbiAgICAgIGNvbG9yOiBcIiNmYWY4ZjVcIixcclxuICAgICAgZGlzcGxheTogXCJncmlkXCIsXHJcbiAgICAgIHBsYWNlSXRlbXM6IFwiY2VudGVyXCIsXHJcbiAgICAgIGJvcmRlcjogXCIxcHggc29saWQgcmdiYSgyMDEsMTY4LDc2LDAuMylcIixcclxuICAgICAgY3Vyc29yOiBcInBvaW50ZXJcIixcclxuICAgICAgYmFja2Ryb3BGaWx0ZXI6IFwiYmx1cig4cHgpXCIsXHJcbiAgICAgIHRyYW5zaXRpb246IFwiYWxsIDAuM3MgZWFzZVwiLFxyXG4gICAgfX1cclxuICAgIG9uTW91c2VFbnRlcj17ZSA9PiBlLmN1cnJlbnRUYXJnZXQuc3R5bGUuYmFja2dyb3VuZCA9IFwicmdiYSgxMjMsMjYsMjYsMC45KVwifVxyXG4gICAgb25Nb3VzZUxlYXZlPXtlID0+IGUuY3VycmVudFRhcmdldC5zdHlsZS5iYWNrZ3JvdW5kID0gXCJyZ2JhKDI2LDI2LDI2LDAuODUpXCJ9XHJcbiAgPlxyXG4gICAgPFggc2l6ZT17MTh9IC8+XHJcbiAgPC9idXR0b24+XHJcbik7XHJcblxyXG4vKiDilIDilIDilIAgSW1hZ2UgLyBWaWRlbyBHYWxsZXJ5IHdpdGggQXV0by1TY3JvbGwg4pSA4pSA4pSAICovXHJcbmNvbnN0IEFVVE9fU0NST0xMX0RVUkFUSU9OID0gMjAwMDsgLy8gMiBzZWNvbmRzIHBlciBzbGlkZVxyXG5cclxuY29uc3QgTWVkaWFHYWxsZXJ5ID0gKHsgaW1hZ2VzID0gW10sIHZpZGVvVXJsIH0pID0+IHtcclxuICBjb25zdCBbYWN0aXZlSW5kZXgsIHNldEFjdGl2ZUluZGV4XSA9IHVzZVN0YXRlKDApO1xyXG4gIGNvbnN0IFtpc1BsYXlpbmcsIHNldElzUGxheWluZ10gPSB1c2VTdGF0ZShmYWxzZSk7XHJcbiAgY29uc3QgW2F1dG9TY3JvbGxQYXVzZWQsIHNldEF1dG9TY3JvbGxQYXVzZWRdID0gdXNlU3RhdGUoZmFsc2UpO1xyXG4gIGNvbnN0IFtwcm9ncmVzcywgc2V0UHJvZ3Jlc3NdID0gdXNlU3RhdGUoMCk7XHJcbiAgY29uc3QgW2lzV2lzaGVkLCBzZXRJc1dpc2hlZF0gPSB1c2VTdGF0ZShmYWxzZSk7XHJcbiAgY29uc3QgW3pvb21lZCwgc2V0Wm9vbWVkXSA9IHVzZVN0YXRlKGZhbHNlKTtcclxuICBjb25zdCBbem9vbVBvcywgc2V0Wm9vbVBvc10gPSB1c2VTdGF0ZSh7IHg6IDUwLCB5OiA1MCB9KTtcclxuICBjb25zdCB2aWRlb1JlZiA9IHVzZVJlZihudWxsKTtcclxuICBjb25zdCBpbnRlcnZhbFJlZiA9IHVzZVJlZihudWxsKTtcclxuICBjb25zdCBwcm9ncmVzc1JlZiA9IHVzZVJlZihudWxsKTtcclxuICBjb25zdCBzdGFydFRpbWVSZWYgPSB1c2VSZWYobnVsbCk7XHJcbiAgY29uc3QgcGF1c2VkUHJvZ3Jlc3NSZWYgPSB1c2VSZWYoMCk7XHJcblxyXG4gIGNvbnN0IGFsbE1lZGlhID0gWy4uLmltYWdlc107XHJcbiAgY29uc3QgdG90YWxTbGlkZXMgPSBhbGxNZWRpYS5sZW5ndGg7XHJcblxyXG4gIC8vIOKUgOKUgCBBdXRvLXNjcm9sbCBlbmdpbmUg4pSA4pSAXHJcbiAgY29uc3Qgc3RhcnRBdXRvU2Nyb2xsID0gdXNlQ2FsbGJhY2soKCkgPT4ge1xyXG4gICAgaWYgKHRvdGFsU2xpZGVzIDw9IDEpIHJldHVybjtcclxuICAgIGNsZWFySW50ZXJ2YWwoaW50ZXJ2YWxSZWYuY3VycmVudCk7XHJcbiAgICBjbGVhckludGVydmFsKHByb2dyZXNzUmVmLmN1cnJlbnQpO1xyXG4gICAgc3RhcnRUaW1lUmVmLmN1cnJlbnQgPSBEYXRlLm5vdygpIC0gcGF1c2VkUHJvZ3Jlc3NSZWYuY3VycmVudCAqIEFVVE9fU0NST0xMX0RVUkFUSU9OIC8gMTAwO1xyXG5cclxuICAgIHByb2dyZXNzUmVmLmN1cnJlbnQgPSBzZXRJbnRlcnZhbCgoKSA9PiB7XHJcbiAgICAgIGNvbnN0IGVsYXBzZWQgPSBEYXRlLm5vdygpIC0gc3RhcnRUaW1lUmVmLmN1cnJlbnQ7XHJcbiAgICAgIGNvbnN0IHBjdCA9IE1hdGgubWluKChlbGFwc2VkIC8gQVVUT19TQ1JPTExfRFVSQVRJT04pICogMTAwLCAxMDApO1xyXG4gICAgICBzZXRQcm9ncmVzcyhwY3QpO1xyXG4gICAgfSwgNTApO1xyXG5cclxuICAgIGludGVydmFsUmVmLmN1cnJlbnQgPSBzZXRUaW1lb3V0KCgpID0+IHtcclxuICAgICAgcGF1c2VkUHJvZ3Jlc3NSZWYuY3VycmVudCA9IDA7XHJcbiAgICAgIHNldEFjdGl2ZUluZGV4KGkgPT4gKGkgKyAxKSAlIHRvdGFsU2xpZGVzKTtcclxuICAgICAgc2V0UHJvZ3Jlc3MoMCk7XHJcbiAgICB9LCBBVVRPX1NDUk9MTF9EVVJBVElPTiAtIHBhdXNlZFByb2dyZXNzUmVmLmN1cnJlbnQgKiBBVVRPX1NDUk9MTF9EVVJBVElPTiAvIDEwMCk7XHJcbiAgfSwgW3RvdGFsU2xpZGVzLCBhbGxNZWRpYV0pO1xyXG5cclxuICBjb25zdCBzdG9wQXV0b1Njcm9sbCA9IHVzZUNhbGxiYWNrKCgpID0+IHtcclxuICAgIGNsZWFySW50ZXJ2YWwoaW50ZXJ2YWxSZWYuY3VycmVudCk7XHJcbiAgICBjbGVhckludGVydmFsKHByb2dyZXNzUmVmLmN1cnJlbnQpO1xyXG4gICAgcGF1c2VkUHJvZ3Jlc3NSZWYuY3VycmVudCA9IHByb2dyZXNzO1xyXG4gIH0sIFtwcm9ncmVzc10pO1xyXG5cclxuICBjb25zdCByZXN1bWVBdXRvU2Nyb2xsID0gdXNlQ2FsbGJhY2soKCkgPT4ge1xyXG4gICAgc3RhcnRBdXRvU2Nyb2xsKCk7XHJcbiAgfSwgW3N0YXJ0QXV0b1Njcm9sbF0pO1xyXG5cclxuICB1c2VFZmZlY3QoKCkgPT4ge1xyXG4gICAgaWYgKCFhdXRvU2Nyb2xsUGF1c2VkKSB7XHJcbiAgICAgIHN0YXJ0QXV0b1Njcm9sbCgpO1xyXG4gICAgfSBlbHNlIHtcclxuICAgICAgc3RvcEF1dG9TY3JvbGwoKTtcclxuICAgIH1cclxuICAgIHJldHVybiAoKSA9PiB7XHJcbiAgICAgIGNsZWFySW50ZXJ2YWwoaW50ZXJ2YWxSZWYuY3VycmVudCk7XHJcbiAgICAgIGNsZWFySW50ZXJ2YWwocHJvZ3Jlc3NSZWYuY3VycmVudCk7XHJcbiAgICB9O1xyXG4gIH0sIFthY3RpdmVJbmRleCwgYXV0b1Njcm9sbFBhdXNlZF0pO1xyXG5cclxuICBjb25zdCBoYW5kbGVVc2VyTmF2ID0gKG5ld0luZGV4KSA9PiB7XHJcbiAgICBwYXVzZWRQcm9ncmVzc1JlZi5jdXJyZW50ID0gMDtcclxuICAgIHNldFByb2dyZXNzKDApO1xyXG4gICAgc2V0QWN0aXZlSW5kZXgobmV3SW5kZXgpO1xyXG4gICAgLy8gUGF1c2UgYnJpZWZseSB0aGVuIHJlc3VtZVxyXG4gICAgc2V0QXV0b1Njcm9sbFBhdXNlZCh0cnVlKTtcclxuICAgIHNldFRpbWVvdXQoKCkgPT4gc2V0QXV0b1Njcm9sbFBhdXNlZChmYWxzZSksIDE1MDApO1xyXG4gIH07XHJcblxyXG4gIGNvbnN0IGdvUHJldiA9ICgpID0+IGhhbmRsZVVzZXJOYXYoKGFjdGl2ZUluZGV4IC0gMSArIHRvdGFsU2xpZGVzKSAlIHRvdGFsU2xpZGVzKTtcclxuICBjb25zdCBnb05leHQgPSAoKSA9PiBoYW5kbGVVc2VyTmF2KChhY3RpdmVJbmRleCArIDEpICUgdG90YWxTbGlkZXMpO1xyXG5cclxuICBjb25zdCB0b2dnbGVQbGF5ID0gKCkgPT4ge1xyXG4gICAgaWYgKCF2aWRlb1JlZi5jdXJyZW50KSByZXR1cm47XHJcbiAgICBpZiAoaXNQbGF5aW5nKSB7IHZpZGVvUmVmLmN1cnJlbnQucGF1c2UoKTsgc2V0SXNQbGF5aW5nKGZhbHNlKTsgfVxyXG4gICAgZWxzZSB7IHZpZGVvUmVmLmN1cnJlbnQucGxheSgpOyBzZXRJc1BsYXlpbmcodHJ1ZSk7IH1cclxuICB9O1xyXG5cclxuICBjb25zdCBoYW5kbGVNb3VzZU1vdmUgPSAoZSkgPT4ge1xyXG4gICAgaWYgKCF6b29tZWQpIHJldHVybjtcclxuICAgIGNvbnN0IHJlY3QgPSBlLmN1cnJlbnRUYXJnZXQuZ2V0Qm91bmRpbmdDbGllbnRSZWN0KCk7XHJcbiAgICBjb25zdCB4ID0gKChlLmNsaWVudFggLSByZWN0LmxlZnQpIC8gcmVjdC53aWR0aCkgKiAxMDA7XHJcbiAgICBjb25zdCB5ID0gKChlLmNsaWVudFkgLSByZWN0LnRvcCkgLyByZWN0LmhlaWdodCkgKiAxMDA7XHJcbiAgICBzZXRab29tUG9zKHsgeCwgeSB9KTtcclxuICB9O1xyXG5cclxuICBjb25zdCB0b2dnbGVQYXVzZSA9ICgpID0+IHtcclxuICAgIGlmIChhdXRvU2Nyb2xsUGF1c2VkKSB7XHJcbiAgICAgIHBhdXNlZFByb2dyZXNzUmVmLmN1cnJlbnQgPSBwcm9ncmVzcztcclxuICAgICAgc2V0QXV0b1Njcm9sbFBhdXNlZChmYWxzZSk7XHJcbiAgICB9IGVsc2Uge1xyXG4gICAgICBzZXRBdXRvU2Nyb2xsUGF1c2VkKHRydWUpO1xyXG4gICAgfVxyXG4gIH07XHJcblxyXG4gIHJldHVybiAoXHJcbiAgPGRpdlxyXG4gICAgc3R5bGU9e3tcclxuICAgICAgcG9zaXRpb246IFwicmVsYXRpdmVcIixcclxuICAgICAgYm9yZGVyUmFkaXVzOiAyNCxcclxuICAgICAgb3ZlcmZsb3c6IFwiaGlkZGVuXCIsXHJcbiAgICAgIGJhY2tncm91bmQ6IFwiIzExMVwiLFxyXG4gICAgICBhc3BlY3RSYXRpbzogXCIxNi85XCIsXHJcbiAgICB9fVxyXG4gID5cclxuXHJcbiAgXHJcblxyXG4gICAgICB7LyogSW1hZ2VzICovfVxyXG4gICAgICB7aW1hZ2VzLm1hcCgoc3JjLCBpKSA9PiAoXHJcbiAgICAgICAgPGRpdlxyXG4gICAgICAgICAga2V5PXtpfVxyXG4gICAgICAgICAgc3R5bGU9e3tcclxuICAgICAgICAgICAgcG9zaXRpb246IFwiYWJzb2x1dGVcIiwgaW5zZXQ6IDAsXHJcbiAgICAgICAgICAgIG9wYWNpdHk6IGFjdGl2ZUluZGV4ID09PSBpID8gMSA6IDAsXHJcbiAgICAgICAgICAgIHRyYW5zaXRpb246IFwib3BhY2l0eSAwLjdzIGN1YmljLWJlemllcigwLjQsIDAsIDAuMiwgMSlcIixcclxuICAgICAgICAgICAgY3Vyc29yOiB6b29tZWQgPyBcInpvb20tb3V0XCIgOiBcInpvb20taW5cIixcclxuICAgICAgICAgICAgb3ZlcmZsb3c6IFwiaGlkZGVuXCIsXHJcbiAgICAgICAgICB9fVxyXG4gICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0Wm9vbWVkKHogPT4gIXopfVxyXG4gICAgICAgICAgb25Nb3VzZU1vdmU9e2hhbmRsZU1vdXNlTW92ZX1cclxuICAgICAgICAgIG9uTW91c2VFbnRlcj17KCkgPT4gc2V0QXV0b1Njcm9sbFBhdXNlZCh0cnVlKX1cclxuICAgICAgICAgIG9uTW91c2VMZWF2ZT17KCkgPT4ge1xyXG4gICAgICAgICAgICBpZiAoIXpvb21lZCkgc2V0QXV0b1Njcm9sbFBhdXNlZChmYWxzZSk7XHJcbiAgICAgICAgICB9fVxyXG4gICAgICAgID5cclxuICAgICAgICAgIDxpbWdcclxuICAgICAgICAgICAgc3JjPXtzcmN9XHJcbiAgICAgICAgICAgIGFsdD17YFJvb20gdmlldyAke2kgKyAxfWB9XHJcbiAgICAgICAgICAgIGxvYWRpbmc9e2kgPT09IDAgPyBcImVhZ2VyXCIgOiBcImxhenlcIn1cclxuICAgICAgICAgICAgc3R5bGU9e3tcclxuICAgICAgICAgICAgICB3aWR0aDogXCIxMDAlXCIsIGhlaWdodDogXCIxMDAlXCIsXHJcbiAgICAgICAgICAgICAgb2JqZWN0Rml0OiBcImNvdmVyXCIsXHJcbiAgICAgICAgICAgICAgdHJhbnNmb3JtT3JpZ2luOiB6b29tZWQgJiYgYWN0aXZlSW5kZXggPT09IGkgPyBgJHt6b29tUG9zLnh9JSAke3pvb21Qb3MueX0lYCA6IFwiY2VudGVyXCIsXHJcbiAgICAgICAgICAgICAgdHJhbnNmb3JtOiB6b29tZWQgJiYgYWN0aXZlSW5kZXggPT09IGkgPyBcInNjYWxlKDIpXCIgOiBcInNjYWxlKDEpXCIsXHJcbiAgICAgICAgICAgICAgdHJhbnNpdGlvbjogem9vbWVkID8gXCJ0cmFuc2Zvcm0gMC4xcyBlYXNlXCIgOiBcInRyYW5zZm9ybSAwLjVzIGVhc2VcIixcclxuICAgICAgICAgICAgICB1c2VyU2VsZWN0OiBcIm5vbmVcIixcclxuICAgICAgICAgICAgfX1cclxuICAgICAgICAgICAgZHJhZ2dhYmxlPXtmYWxzZX1cclxuICAgICAgICAgIC8+XHJcbiAgICAgICAgPC9kaXY+XHJcbiAgICAgICkpfVxyXG5cclxuICAgICAgey8qIEZsb2F0aW5nIFZpZGVvIFJlZWwgKi99XHJcbnt2aWRlb1VybCAmJiAoXHJcbiAgPGRpdlxyXG4gICAgc3R5bGU9e3tcclxuICAgICAgcG9zaXRpb246IFwiYWJzb2x1dGVcIixcclxuICAgICAgcmlnaHQ6IDE4LFxyXG4gICAgICBib3R0b206IDE4LFxyXG4gICAgICB3aWR0aDogMTY1LFxyXG4gICAgICBoZWlnaHQ6IDMwMCxcclxuICAgICAgYm9yZGVyUmFkaXVzOiBcIjI4cHhcIixcclxuICAgICAgb3ZlcmZsb3c6IFwiaGlkZGVuXCIsXHJcbiAgICAgIGJhY2tncm91bmQ6IFwiIzAwMFwiLFxyXG4gICAgICB6SW5kZXg6IDI1LFxyXG4gICAgICBib3hTaGFkb3c6XHJcbiAgICAgICAgXCIwIDMwcHggODBweCByZ2JhKDAsMCwwLDAuNTUpXCIsXHJcbiAgICAgIGJvcmRlcjpcclxuICAgICAgICBcIjJweCBzb2xpZCByZ2JhKDI1NSwyNTUsMjU1LDAuMTIpXCIsXHJcbiAgICAgIGJhY2tkcm9wRmlsdGVyOiBcImJsdXIoMjBweClcIixcclxuICAgICAgdHJhbnNmb3JtOiBcInRyYW5zbGF0ZVooMClcIixcclxuICAgIH19XHJcbiAgPlxyXG4gICAgey8qIEluc3RhZ3JhbS1zdHlsZSB0b3AgYmFyICovfVxyXG4gICAgPGRpdlxyXG4gICAgICBzdHlsZT17e1xyXG4gICAgICAgIHBvc2l0aW9uOiBcImFic29sdXRlXCIsXHJcbiAgICAgICAgdG9wOiAwLFxyXG4gICAgICAgIGxlZnQ6IDAsXHJcbiAgICAgICAgcmlnaHQ6IDAsXHJcbiAgICAgICAgekluZGV4OiA1LFxyXG4gICAgICAgIHBhZGRpbmc6IFwiMTBweCAxMnB4XCIsXHJcbiAgICAgICAgZGlzcGxheTogXCJmbGV4XCIsXHJcbiAgICAgICAgYWxpZ25JdGVtczogXCJjZW50ZXJcIixcclxuICAgICAgICBqdXN0aWZ5Q29udGVudDogXCJzcGFjZS1iZXR3ZWVuXCIsXHJcbiAgICAgICAgYmFja2dyb3VuZDpcclxuICAgICAgICAgIFwibGluZWFyLWdyYWRpZW50KHRvIGJvdHRvbSwgcmdiYSgwLDAsMCwwLjY1KSwgdHJhbnNwYXJlbnQpXCIsXHJcbiAgICAgIH19XHJcbiAgICA+XHJcbiAgICAgIDxkaXZcclxuICAgICAgICBzdHlsZT17e1xyXG4gICAgICAgICAgZGlzcGxheTogXCJmbGV4XCIsXHJcbiAgICAgICAgICBhbGlnbkl0ZW1zOiBcImNlbnRlclwiLFxyXG4gICAgICAgICAgZ2FwOiA4LFxyXG4gICAgICAgIH19XHJcbiAgICAgID5cclxuICAgICAgICA8ZGl2XHJcbiAgICAgICAgICBzdHlsZT17e1xyXG4gICAgICAgICAgICB3aWR0aDogMzIsXHJcbiAgICAgICAgICAgIGhlaWdodDogMzIsXHJcbiAgICAgICAgICAgIGJvcmRlclJhZGl1czogXCI1MCVcIixcclxuICAgICAgICAgICAgYmFja2dyb3VuZDpcclxuICAgICAgICAgICAgICBcImxpbmVhci1ncmFkaWVudCgxMzVkZWcsI2M5YTg0YywjN2IxYTFhKVwiLFxyXG4gICAgICAgICAgICBkaXNwbGF5OiBcImdyaWRcIixcclxuICAgICAgICAgICAgcGxhY2VJdGVtczogXCJjZW50ZXJcIixcclxuICAgICAgICAgICAgY29sb3I6IFwiI2ZmZlwiLFxyXG4gICAgICAgICAgICBmb250U2l6ZTogXCIwLjdyZW1cIixcclxuICAgICAgICAgICAgZm9udFdlaWdodDogNzAwLFxyXG4gICAgICAgICAgfX1cclxuICAgICAgICA+XHJcbiAgICAgICAgICBCVFxyXG4gICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICA8ZGl2PlxyXG4gICAgICAgICAgPGRpdlxyXG4gICAgICAgICAgICBzdHlsZT17e1xyXG4gICAgICAgICAgICAgIGNvbG9yOiBcIiNmZmZcIixcclxuICAgICAgICAgICAgICBmb250U2l6ZTogXCIwLjcycmVtXCIsXHJcbiAgICAgICAgICAgICAgZm9udFdlaWdodDogNzAwLFxyXG4gICAgICAgICAgICAgIGxpbmVIZWlnaHQ6IDEsXHJcbiAgICAgICAgICAgIH19XHJcbiAgICAgICAgICA+XHJcbiAgICAgICAgICAgIEJhZWwgVHJlZVxyXG4gICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgPGRpdlxyXG4gICAgICAgICAgICBzdHlsZT17e1xyXG4gICAgICAgICAgICAgIGNvbG9yOiBcInJnYmEoMjU1LDI1NSwyNTUsMC43KVwiLFxyXG4gICAgICAgICAgICAgIGZvbnRTaXplOiBcIjAuNnJlbVwiLFxyXG4gICAgICAgICAgICAgIG1hcmdpblRvcDogMixcclxuICAgICAgICAgICAgfX1cclxuICAgICAgICAgID5cclxuICAgICAgICAgICAgTHV4dXJ5IFN0YXlcclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICA8L2Rpdj5cclxuXHJcbiAgICAgIDxkaXZcclxuICAgICAgICBzdHlsZT17e1xyXG4gICAgICAgICAgY29sb3I6IFwiI2ZmZlwiLFxyXG4gICAgICAgICAgZm9udFNpemU6IFwiMXJlbVwiLFxyXG4gICAgICAgICAgZm9udFdlaWdodDogNzAwLFxyXG4gICAgICAgIH19XHJcbiAgICAgID5cclxuICAgICAgICDii65cclxuICAgICAgPC9kaXY+XHJcbiAgICA8L2Rpdj5cclxuXHJcbiAgICB7LyogVklERU8gKi99XHJcbiAgICA8dmlkZW9cclxuICAgICAgcmVmPXt2aWRlb1JlZn1cclxuICAgICAgc3JjPXt2aWRlb1VybH1cclxuICAgICAgYXV0b1BsYXlcclxuICAgICAgbXV0ZWRcclxuICAgICAgbG9vcFxyXG4gICAgICBwbGF5c0lubGluZVxyXG4gICAgICBjb250cm9sc1xyXG4gICAgICBzdHlsZT17e1xyXG4gICAgICAgIHdpZHRoOiBcIjEwMCVcIixcclxuICAgICAgICBoZWlnaHQ6IFwiMTAwJVwiLFxyXG4gICAgICAgIG9iamVjdEZpdDogXCJjb3ZlclwiLFxyXG4gICAgICAgIGRpc3BsYXk6IFwiYmxvY2tcIixcclxuICAgICAgfX1cclxuICAgIC8+XHJcblxyXG4gICAgey8qIEJvdHRvbSBvdmVybGF5ICovfVxyXG4gICAgPGRpdlxyXG4gICAgICBzdHlsZT17e1xyXG4gICAgICAgIHBvc2l0aW9uOiBcImFic29sdXRlXCIsXHJcbiAgICAgICAgbGVmdDogMCxcclxuICAgICAgICByaWdodDogMCxcclxuICAgICAgICBib3R0b206IDAsXHJcbiAgICAgICAgcGFkZGluZzogXCIxNHB4XCIsXHJcbiAgICAgICAgYmFja2dyb3VuZDpcclxuICAgICAgICAgIFwibGluZWFyLWdyYWRpZW50KHRvIHRvcCwgcmdiYSgwLDAsMCwwLjgpLCB0cmFuc3BhcmVudClcIixcclxuICAgICAgICB6SW5kZXg6IDUsXHJcbiAgICAgIH19XHJcbiAgICA+XHJcbiAgICAgIDxkaXZcclxuICAgICAgICBzdHlsZT17e1xyXG4gICAgICAgICAgY29sb3I6IFwiI2ZmZlwiLFxyXG4gICAgICAgICAgZm9udFNpemU6IFwiMC43MnJlbVwiLFxyXG4gICAgICAgICAgZm9udFdlaWdodDogNjAwLFxyXG4gICAgICAgICAgbWFyZ2luQm90dG9tOiA0LFxyXG4gICAgICAgIH19XHJcbiAgICAgID5cclxuICAgICAgICBMdXh1cnkgUm9vbVxyXG4gICAgICA8L2Rpdj5cclxuXHJcbiAgICAgIDxkaXZcclxuICAgICAgICBzdHlsZT17e1xyXG4gICAgICAgICAgY29sb3I6IFwicmdiYSgyNTUsMjU1LDI1NSwwLjcpXCIsXHJcbiAgICAgICAgICBmb250U2l6ZTogXCIwLjYycmVtXCIsXHJcbiAgICAgICAgICBsaW5lSGVpZ2h0OiAxLjQsXHJcbiAgICAgICAgfX1cclxuICAgICAgPlxyXG4gICAgICAgIEV4cGVyaWVuY2UgbHV4dXJ5IGhvc3BpdGFsaXR5IGF0XHJcbiAgICAgICAgQmFlbCBUcmVlIEhvdGVscy5cclxuICAgICAgPC9kaXY+XHJcbiAgICA8L2Rpdj5cclxuICA8L2Rpdj5cclxuKX1cclxuXHJcbiBcclxuICAgICAgey8qIEdyYWRpZW50IG92ZXJsYXlzICovfVxyXG4gICAgICA8ZGl2IHN0eWxlPXt7XHJcbiAgICAgICAgcG9zaXRpb246IFwiYWJzb2x1dGVcIiwgaW5zZXQ6IDAsIHBvaW50ZXJFdmVudHM6IFwibm9uZVwiLFxyXG4gICAgICAgIGJhY2tncm91bmQ6IFwibGluZWFyLWdyYWRpZW50KDE4MGRlZywgdHJhbnNwYXJlbnQgNDAlLCByZ2JhKDAsMCwwLDAuNTUpIDEwMCUpXCIsXHJcbiAgICAgIH19IC8+XHJcbiAgICAgIDxkaXYgc3R5bGU9e3tcclxuICAgICAgICBwb3NpdGlvbjogXCJhYnNvbHV0ZVwiLCBpbnNldDogMCwgcG9pbnRlckV2ZW50czogXCJub25lXCIsXHJcbiAgICAgICAgYmFja2dyb3VuZDogXCJsaW5lYXItZ3JhZGllbnQoOTBkZWcsIHJnYmEoMCwwLDAsMC4yKSAwJSwgdHJhbnNwYXJlbnQgMjAlLCB0cmFuc3BhcmVudCA4MCUsIHJnYmEoMCwwLDAsMC4yKSAxMDAlKVwiLFxyXG4gICAgICB9fSAvPlxyXG5cclxuICAgICAgey8qIFRvcC1yaWdodCBhY3Rpb24gYnV0dG9ucyAqL31cclxuICAgICAgPGRpdiBzdHlsZT17e1xyXG4gICAgICAgIHBvc2l0aW9uOiBcImFic29sdXRlXCIsIHRvcDogMTIsIHJpZ2h0OiAxMiwgekluZGV4OiA1LFxyXG4gICAgICAgIGRpc3BsYXk6IFwiZmxleFwiLCBnYXA6IFwiMC41cmVtXCIsXHJcbiAgICAgIH19PlxyXG4gICAgICAgIDxidXR0b25cclxuICAgICAgICAgIHR5cGU9XCJidXR0b25cIlxyXG4gICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0SXNXaXNoZWQodyA9PiAhdyl9XHJcbiAgICAgICAgICBhcmlhLWxhYmVsPVwiV2lzaGxpc3RcIlxyXG4gICAgICAgICAgc3R5bGU9e3tcclxuICAgICAgICAgICAgd2lkdGg6IDM2LCBoZWlnaHQ6IDM2LCBib3JkZXJSYWRpdXM6IFwiNTAlXCIsXHJcbiAgICAgICAgICAgIGJhY2tncm91bmQ6IFwicmdiYSgyNiwyNiwyNiwwLjcpXCIsXHJcbiAgICAgICAgICAgIGNvbG9yOiBpc1dpc2hlZCA/IFwiI2U4NGM0Y1wiIDogXCIjZmFmOGY1XCIsXHJcbiAgICAgICAgICAgIGJvcmRlcjogXCJub25lXCIsIGN1cnNvcjogXCJwb2ludGVyXCIsXHJcbiAgICAgICAgICAgIGRpc3BsYXk6IFwiZ3JpZFwiLCBwbGFjZUl0ZW1zOiBcImNlbnRlclwiLFxyXG4gICAgICAgICAgICBiYWNrZHJvcEZpbHRlcjogXCJibHVyKDhweClcIixcclxuICAgICAgICAgICAgdHJhbnNpdGlvbjogXCJhbGwgMC4ycyBlYXNlXCIsXHJcbiAgICAgICAgICB9fVxyXG4gICAgICAgID5cclxuICAgICAgICAgIDxIZWFydCBzaXplPXsxNX0gZmlsbD17aXNXaXNoZWQgPyBcIiNlODRjNGNcIiA6IFwibm9uZVwifSAvPlxyXG4gICAgICAgIDwvYnV0dG9uPlxyXG4gICAgICAgIDxidXR0b25cclxuICAgICAgICAgIHR5cGU9XCJidXR0b25cIlxyXG4gICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0Wm9vbWVkKHogPT4gIXopfVxyXG4gICAgICAgICAgYXJpYS1sYWJlbD1cIlpvb21cIlxyXG4gICAgICAgICAgc3R5bGU9e3tcclxuICAgICAgICAgICAgd2lkdGg6IDM2LCBoZWlnaHQ6IDM2LCBib3JkZXJSYWRpdXM6IFwiNTAlXCIsXHJcbiAgICAgICAgICAgIGJhY2tncm91bmQ6IFwicmdiYSgyNiwyNiwyNiwwLjcpXCIsXHJcbiAgICAgICAgICAgIGNvbG9yOiBcIiNmYWY4ZjVcIiwgYm9yZGVyOiBcIm5vbmVcIiwgY3Vyc29yOiBcInBvaW50ZXJcIixcclxuICAgICAgICAgICAgZGlzcGxheTogXCJncmlkXCIsIHBsYWNlSXRlbXM6IFwiY2VudGVyXCIsXHJcbiAgICAgICAgICAgIGJhY2tkcm9wRmlsdGVyOiBcImJsdXIoOHB4KVwiLFxyXG4gICAgICAgICAgICB0cmFuc2l0aW9uOiBcImFsbCAwLjJzIGVhc2VcIixcclxuICAgICAgICAgIH19XHJcbiAgICAgICAgPlxyXG4gICAgICAgICAgPFpvb21JbiBzaXplPXsxNX0gLz5cclxuICAgICAgICA8L2J1dHRvbj5cclxuICAgICAgPC9kaXY+XHJcblxyXG4gICAgICB7LyogTmF2aWdhdGlvbiBhcnJvd3MgKi99XHJcbiAgICAgIHt0b3RhbFNsaWRlcyA+IDEgJiYgIXpvb21lZCAmJiAoXHJcbiAgICAgICAgPD5cclxuICAgICAgICAgIDxidXR0b24gdHlwZT1cImJ1dHRvblwiIG9uQ2xpY2s9e2dvUHJldn0gYXJpYS1sYWJlbD1cIlByZXZpb3VzXCIgc3R5bGU9e3tcclxuICAgICAgICAgICAgcG9zaXRpb246IFwiYWJzb2x1dGVcIiwgbGVmdDogMTIsIHRvcDogXCI1MCVcIiwgdHJhbnNmb3JtOiBcInRyYW5zbGF0ZVkoLTUwJSlcIixcclxuICAgICAgICAgICAgd2lkdGg6IDQ0LCBoZWlnaHQ6IDQ0LCBib3JkZXJSYWRpdXM6IFwiNTAlXCIsXHJcbiAgICAgICAgICAgIGJhY2tncm91bmQ6IFwicmdiYSgyNTUsMjU1LDI1NSwwLjEyKVwiLCBiYWNrZHJvcEZpbHRlcjogXCJibHVyKDEwcHgpXCIsXHJcbiAgICAgICAgICAgIGNvbG9yOiBcIiNmZmZcIiwgYm9yZGVyOiBcIjFweCBzb2xpZCByZ2JhKDI1NSwyNTUsMjU1LDAuMilcIiwgY3Vyc29yOiBcInBvaW50ZXJcIixcclxuICAgICAgICAgICAgZGlzcGxheTogXCJncmlkXCIsIHBsYWNlSXRlbXM6IFwiY2VudGVyXCIsXHJcbiAgICAgICAgICAgIHRyYW5zaXRpb246IFwiYWxsIDAuMjVzIGVhc2VcIiwgekluZGV4OiA1LFxyXG4gICAgICAgICAgfX1cclxuICAgICAgICAgICAgb25Nb3VzZUVudGVyPXtlID0+IHsgZS5jdXJyZW50VGFyZ2V0LnN0eWxlLmJhY2tncm91bmQgPSBcInJnYmEoMjAxLDE2OCw3NiwwLjg1KVwiOyBlLmN1cnJlbnRUYXJnZXQuc3R5bGUuY29sb3IgPSBcIiMxYTFhMWFcIjsgfX1cclxuICAgICAgICAgICAgb25Nb3VzZUxlYXZlPXtlID0+IHsgZS5jdXJyZW50VGFyZ2V0LnN0eWxlLmJhY2tncm91bmQgPSBcInJnYmEoMjU1LDI1NSwyNTUsMC4xMilcIjsgZS5jdXJyZW50VGFyZ2V0LnN0eWxlLmNvbG9yID0gXCIjZmZmXCI7IH19XHJcbiAgICAgICAgICA+XHJcbiAgICAgICAgICAgIDxDaGV2cm9uTGVmdCBzaXplPXsyMH0gLz5cclxuICAgICAgICAgIDwvYnV0dG9uPlxyXG4gICAgICAgICAgPGJ1dHRvbiB0eXBlPVwiYnV0dG9uXCIgb25DbGljaz17Z29OZXh0fSBhcmlhLWxhYmVsPVwiTmV4dFwiIHN0eWxlPXt7XHJcbiAgICAgICAgICAgIHBvc2l0aW9uOiBcImFic29sdXRlXCIsIHJpZ2h0OiAxMiwgdG9wOiBcIjUwJVwiLCB0cmFuc2Zvcm06IFwidHJhbnNsYXRlWSgtNTAlKVwiLFxyXG4gICAgICAgICAgICB3aWR0aDogNDQsIGhlaWdodDogNDQsIGJvcmRlclJhZGl1czogXCI1MCVcIixcclxuICAgICAgICAgICAgYmFja2dyb3VuZDogXCJyZ2JhKDI1NSwyNTUsMjU1LDAuMTIpXCIsIGJhY2tkcm9wRmlsdGVyOiBcImJsdXIoMTBweClcIixcclxuICAgICAgICAgICAgY29sb3I6IFwiI2ZmZlwiLCBib3JkZXI6IFwiMXB4IHNvbGlkIHJnYmEoMjU1LDI1NSwyNTUsMC4yKVwiLCBjdXJzb3I6IFwicG9pbnRlclwiLFxyXG4gICAgICAgICAgICBkaXNwbGF5OiBcImdyaWRcIiwgcGxhY2VJdGVtczogXCJjZW50ZXJcIixcclxuICAgICAgICAgICAgdHJhbnNpdGlvbjogXCJhbGwgMC4yNXMgZWFzZVwiLCB6SW5kZXg6IDUsXHJcbiAgICAgICAgICB9fVxyXG4gICAgICAgICAgICBvbk1vdXNlRW50ZXI9e2UgPT4geyBlLmN1cnJlbnRUYXJnZXQuc3R5bGUuYmFja2dyb3VuZCA9IFwicmdiYSgyMDEsMTY4LDc2LDAuODUpXCI7IGUuY3VycmVudFRhcmdldC5zdHlsZS5jb2xvciA9IFwiIzFhMWExYVwiOyB9fVxyXG4gICAgICAgICAgICBvbk1vdXNlTGVhdmU9e2UgPT4geyBlLmN1cnJlbnRUYXJnZXQuc3R5bGUuYmFja2dyb3VuZCA9IFwicmdiYSgyNTUsMjU1LDI1NSwwLjEyKVwiOyBlLmN1cnJlbnRUYXJnZXQuc3R5bGUuY29sb3IgPSBcIiNmZmZcIjsgfX1cclxuICAgICAgICAgID5cclxuICAgICAgICAgICAgPENoZXZyb25SaWdodCBzaXplPXsyMH0gLz5cclxuICAgICAgICAgIDwvYnV0dG9uPlxyXG4gICAgICAgIDwvPlxyXG4gICAgICApfVxyXG5cclxuICAgICAgey8qIEJvdHRvbSBjb250cm9scyBiYXIgKi99XHJcbiAgICAgIDxkaXYgc3R5bGU9e3tcclxuICAgICAgICBwb3NpdGlvbjogXCJhYnNvbHV0ZVwiLCBib3R0b206IDAsIGxlZnQ6IDAsIHJpZ2h0OiAwLCB6SW5kZXg6IDUsXHJcbiAgICAgICAgcGFkZGluZzogXCIxcmVtIDFyZW0gMC43NXJlbVwiLFxyXG4gICAgICAgIGRpc3BsYXk6IFwiZmxleFwiLCBhbGlnbkl0ZW1zOiBcImZsZXgtZW5kXCIsIGp1c3RpZnlDb250ZW50OiBcInNwYWNlLWJldHdlZW5cIixcclxuICAgICAgICBiYWNrZ3JvdW5kOiBcImxpbmVhci1ncmFkaWVudCgwZGVnLCByZ2JhKDAsMCwwLDAuNikgMCUsIHRyYW5zcGFyZW50IDEwMCUpXCIsXHJcbiAgICAgIH19PlxyXG4gICAgICAgIHsvKiBUaHVtYm5haWwgc3RyaXAgKi99XHJcbiAgICAgICAgPGRpdiBzdHlsZT17e1xyXG4gICAgICAgICAgZGlzcGxheTogXCJmbGV4XCIsIGdhcDogNixcclxuICAgICAgICAgIG92ZXJmbG93WDogXCJhdXRvXCIsIHNjcm9sbGJhcldpZHRoOiBcIm5vbmVcIixcclxuICAgICAgICAgIG1heFdpZHRoOiBcImNhbGMoMTAwJSAtIDEyMHB4KVwiLFxyXG4gICAgICAgIH19PlxyXG4gICAgICAgICAge2ltYWdlcy5tYXAoKHNyYywgaSkgPT4gKFxyXG4gICAgICAgICAgICA8YnV0dG9uXHJcbiAgICAgICAgICAgICAga2V5PXtpfVxyXG4gICAgICAgICAgICAgIHR5cGU9XCJidXR0b25cIlxyXG4gICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IGhhbmRsZVVzZXJOYXYoaSl9XHJcbiAgICAgICAgICAgICAgc3R5bGU9e3tcclxuICAgICAgICAgICAgICAgIGZsZXhTaHJpbms6IDAsIHdpZHRoOiA0OCwgaGVpZ2h0OiAzNixcclxuICAgICAgICAgICAgICAgIGJvcmRlclJhZGl1czogOCwgb3ZlcmZsb3c6IFwiaGlkZGVuXCIsXHJcbiAgICAgICAgICAgICAgICBib3JkZXI6IGFjdGl2ZUluZGV4ID09PSBpID8gXCIycHggc29saWQgI2M5YTg0Y1wiIDogXCIycHggc29saWQgcmdiYSgyNTUsMjU1LDI1NSwwLjI1KVwiLFxyXG4gICAgICAgICAgICAgICAgY3Vyc29yOiBcInBvaW50ZXJcIiwgcGFkZGluZzogMCxcclxuICAgICAgICAgICAgICAgIHRyYW5zaXRpb246IFwiYWxsIDAuMjVzIGVhc2VcIixcclxuICAgICAgICAgICAgICAgIG9wYWNpdHk6IGFjdGl2ZUluZGV4ID09PSBpID8gMSA6IDAuNjUsXHJcbiAgICAgICAgICAgICAgfX1cclxuICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgIDxpbWcgc3JjPXtzcmN9IGFsdD1cIlwiIHN0eWxlPXt7IHdpZHRoOiBcIjEwMCVcIiwgaGVpZ2h0OiBcIjEwMCVcIiwgb2JqZWN0Rml0OiBcImNvdmVyXCIgfX0gLz5cclxuICAgICAgICAgICAgPC9idXR0b24+XHJcbiAgICAgICAgICApKX1cclxuXHJcbiAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgIHsvKiBBdXRvLXNjcm9sbCBjb250cm9sICovfVxyXG4gICAgICAgIHt0b3RhbFNsaWRlcyA+IDEgJiYgKFxyXG4gICAgICAgICAgPGJ1dHRvblxyXG4gICAgICAgICAgICB0eXBlPVwiYnV0dG9uXCJcclxuICAgICAgICAgICAgb25DbGljaz17dG9nZ2xlUGF1c2V9XHJcbiAgICAgICAgICAgIGFyaWEtbGFiZWw9e2F1dG9TY3JvbGxQYXVzZWQgPyBcIlJlc3VtZSBhdXRvLXNjcm9sbFwiIDogXCJQYXVzZSBhdXRvLXNjcm9sbFwifVxyXG4gICAgICAgICAgICBzdHlsZT17e1xyXG4gICAgICAgICAgICAgIHBvc2l0aW9uOiBcInJlbGF0aXZlXCIsIHdpZHRoOiAzNiwgaGVpZ2h0OiAzNixcclxuICAgICAgICAgICAgICBib3JkZXJSYWRpdXM6IFwiNTAlXCIsIGJvcmRlcjogXCJub25lXCIsIGN1cnNvcjogXCJwb2ludGVyXCIsXHJcbiAgICAgICAgICAgICAgYmFja2dyb3VuZDogXCJyZ2JhKDI2LDI2LDI2LDAuNilcIiwgYmFja2Ryb3BGaWx0ZXI6IFwiYmx1cig4cHgpXCIsXHJcbiAgICAgICAgICAgICAgZGlzcGxheTogXCJncmlkXCIsIHBsYWNlSXRlbXM6IFwiY2VudGVyXCIsXHJcbiAgICAgICAgICAgICAgZmxleFNocmluazogMCxcclxuICAgICAgICAgICAgfX1cclxuICAgICAgICAgID5cclxuICAgICAgICAgICAgPGRpdiBzdHlsZT17eyBwb3NpdGlvbjogXCJhYnNvbHV0ZVwiLCBpbnNldDogMCB9fT5cclxuICAgICAgICAgICAgICA8UHJvZ3Jlc3NSaW5nIHByb2dyZXNzPXthdXRvU2Nyb2xsUGF1c2VkID8gcGF1c2VkUHJvZ3Jlc3NSZWYuY3VycmVudCA6IHByb2dyZXNzfSBzaXplPXszNn0gc3Ryb2tlPXszfSAvPlxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAge2F1dG9TY3JvbGxQYXVzZWRcclxuICAgICAgICAgICAgICA/IDxQbGF5IHNpemU9ezEyfSBjb2xvcj1cIiNjOWE4NGNcIiBzdHlsZT17eyBtYXJnaW5MZWZ0OiAyIH19IC8+XHJcbiAgICAgICAgICAgICAgOiA8UGF1c2Ugc2l6ZT17MTJ9IGNvbG9yPVwiI2M5YTg0Y1wiIC8+fVxyXG4gICAgICAgICAgPC9idXR0b24+XHJcbiAgICAgICAgKX1cclxuICAgICAgPC9kaXY+XHJcblxyXG4gICAgICB7LyogU2xpZGUgY291bnRlciAqL31cclxuICAgICAgPGRpdiBzdHlsZT17e1xyXG4gICAgICAgIHBvc2l0aW9uOiBcImFic29sdXRlXCIsIHRvcDogMTIsIGxlZnQ6IDEyLCB6SW5kZXg6IDUsXHJcbiAgICAgICAgcGFkZGluZzogXCIwLjNyZW0gMC43cmVtXCIsIGJvcmRlclJhZGl1czogOTk5LFxyXG4gICAgICAgIGJhY2tncm91bmQ6IFwicmdiYSgyNiwyNiwyNiwwLjY1KVwiLCBiYWNrZHJvcEZpbHRlcjogXCJibHVyKDhweClcIixcclxuICAgICAgICBjb2xvcjogXCIjZmFmOGY1XCIsIGZvbnRTaXplOiBcIjAuNzVyZW1cIiwgZm9udFdlaWdodDogNjAwLFxyXG4gICAgICAgIGxldHRlclNwYWNpbmc6IFwiMC4wNmVtXCIsXHJcbiAgICAgIH19PlxyXG4gICAgICAgIHthY3RpdmVJbmRleCArIDF9IC8ge3RvdGFsU2xpZGVzfVxyXG4gICAgICA8L2Rpdj5cclxuXHJcbiAgICAgIHsvKiBab29tIGhpbnQgKi99XHJcbiAgICAgIHt6b29tZWQgJiYgKFxyXG4gICAgICAgIDxkaXYgc3R5bGU9e3tcclxuICAgICAgICAgIHBvc2l0aW9uOiBcImFic29sdXRlXCIsIGJvdHRvbTogXCIzLjVyZW1cIiwgbGVmdDogXCI1MCVcIiwgdHJhbnNmb3JtOiBcInRyYW5zbGF0ZVgoLTUwJSlcIixcclxuICAgICAgICAgIHBhZGRpbmc6IFwiMC4zNXJlbSAwLjg1cmVtXCIsIGJvcmRlclJhZGl1czogOTk5LFxyXG4gICAgICAgICAgYmFja2dyb3VuZDogXCJyZ2JhKDIwMSwxNjgsNzYsMC45KVwiLCBjb2xvcjogXCIjMWExYTFhXCIsXHJcbiAgICAgICAgICBmb250U2l6ZTogXCIwLjcycmVtXCIsIGZvbnRXZWlnaHQ6IDcwMCwgbGV0dGVyU3BhY2luZzogXCIwLjA2ZW1cIixcclxuICAgICAgICAgIHpJbmRleDogNiwgcG9pbnRlckV2ZW50czogXCJub25lXCIsXHJcbiAgICAgICAgfX0+XHJcbiAgICAgICAgICBDbGljayB0byBleGl0IHpvb21cclxuICAgICAgICA8L2Rpdj5cclxuICAgICAgKX1cclxuICAgIDwvZGl2PlxyXG4gICk7XHJcbn07XHJcblxyXG4vKiDilIDilIDilIAgTWFpbiBSb29tIERldGFpbCBNb2RhbCDilIDilIDilIAgKi9cclxuY29uc3QgUm9vbURldGFpbE1vZGFsID0gKHsgcm9vbSwgb25DbG9zZSB9KSA9PiB7XHJcbiAgY29uc3QgeyBvcGVuQm9va2luZyB9ID0gdXNlQm9va2luZygpO1xyXG4gIGNvbnN0IG1vZGFsUmVmID0gdXNlUmVmKG51bGwpO1xyXG5cclxuICB1c2VFZmZlY3QoKCkgPT4ge1xyXG4gICAgZG9jdW1lbnQuYm9keS5zdHlsZS5vdmVyZmxvdyA9IFwiaGlkZGVuXCI7XHJcbiAgICBjb25zdCBvbktleSA9IGUgPT4geyBpZiAoZS5rZXkgPT09IFwiRXNjYXBlXCIpIG9uQ2xvc2UoKTsgfTtcclxuICAgIHdpbmRvdy5hZGRFdmVudExpc3RlbmVyKFwia2V5ZG93blwiLCBvbktleSk7XHJcbiAgICByZXR1cm4gKCkgPT4ge1xyXG4gICAgICBkb2N1bWVudC5ib2R5LnN0eWxlLm92ZXJmbG93ID0gXCJcIjtcclxuICAgICAgd2luZG93LnJlbW92ZUV2ZW50TGlzdGVuZXIoXCJrZXlkb3duXCIsIG9uS2V5KTtcclxuICAgIH07XHJcbiAgfSwgW29uQ2xvc2VdKTtcclxuXHJcbiAgaWYgKCFyb29tKSByZXR1cm4gbnVsbDtcclxuXHJcbiAgcmV0dXJuIChcclxuICAgIDxkaXZcclxuICAgICAgcm9sZT1cImRpYWxvZ1wiXHJcbiAgICAgIGFyaWEtbW9kYWw9XCJ0cnVlXCJcclxuICAgICAgYXJpYS1sYWJlbD17YCR7cm9vbS5uYW1lfSBkZXRhaWxzYH1cclxuICAgICAgc3R5bGU9e3tcclxuICAgICAgICBwb3NpdGlvbjogXCJmaXhlZFwiLCBpbnNldDogMCwgekluZGV4OiA3MCxcclxuICAgICAgICBkaXNwbGF5OiBcImdyaWRcIiwgcGxhY2VJdGVtczogXCJjZW50ZXJcIixcclxuICAgICAgICBwYWRkaW5nOiBcIjFyZW1cIixcclxuICAgICAgfX1cclxuICAgID5cclxuICAgICAgey8qIEJhY2tkcm9wICovfVxyXG4gICAgICA8ZGl2XHJcbiAgICAgICAgb25DbGljaz17b25DbG9zZX1cclxuICAgICAgICBzdHlsZT17e1xyXG4gICAgICAgICAgcG9zaXRpb246IFwiYWJzb2x1dGVcIiwgaW5zZXQ6IDAsXHJcbiAgICAgICAgICBiYWNrZ3JvdW5kOiBcInJnYmEoOCw4LDgsMC44MilcIixcclxuICAgICAgICAgIGJhY2tkcm9wRmlsdGVyOiBcImJsdXIoMTZweClcIixcclxuICAgICAgICB9fVxyXG4gICAgICAvPlxyXG5cclxuICAgICAgey8qIE1vZGFsIGNhcmQgKi99XHJcbiAgICAgIDxkaXZcclxuICAgICAgICByZWY9e21vZGFsUmVmfVxyXG4gICAgICAgIHN0eWxlPXt7XHJcbiAgICAgICAgICBwb3NpdGlvbjogXCJyZWxhdGl2ZVwiLCB6SW5kZXg6IDEsXHJcbiAgICAgICAgICB3aWR0aDogXCJtaW4oMTEwMHB4LCBjYWxjKDEwMHZ3IC0gMXJlbSkpXCIsXHJcbiAgICAgICAgICBtYXhIZWlnaHQ6IFwiOTR2aFwiLFxyXG4gICAgICAgICAgb3ZlcmZsb3dZOiBcImF1dG9cIixcclxuICAgICAgICAgIGJvcmRlclJhZGl1czogMzIsXHJcbiAgICAgICAgICBiYWNrZ3JvdW5kOiBcImxpbmVhci1ncmFkaWVudCgxODBkZWcsICNmZmZkZjkgMCUsICNmYWY4ZjUgMTAwJSlcIixcclxuICAgICAgICAgIGJvcmRlcjogXCIxcHggc29saWQgcmdiYSgyMDEsMTY4LDc2LDAuMylcIixcclxuICAgICAgICAgIGJveFNoYWRvdzogXCIwIDQwcHggMTIwcHggcmdiYSgwLDAsMCwwLjM1KSwgMCAwIDAgMXB4IHJnYmEoMjAxLDE2OCw3NiwwLjEpXCIsXHJcbiAgICAgICAgICBzY3JvbGxiYXJXaWR0aDogXCJ0aGluXCIsXHJcbiAgICAgICAgICBzY3JvbGxiYXJDb2xvcjogXCJyZ2JhKDIwMSwxNjgsNzYsMC4zKSB0cmFuc3BhcmVudFwiLFxyXG4gICAgICAgICAgYW5pbWF0aW9uOiBcIm1vZGFsRW50cmFuY2UgMC40cyBjdWJpYy1iZXppZXIoMC4zNCwgMS41NiwgMC42NCwgMSlcIixcclxuICAgICAgICB9fVxyXG4gICAgICA+XHJcbiAgICAgICAgPENsb3NlQnRuIG9uQ2xpY2s9e29uQ2xvc2V9IC8+XHJcblxyXG4gICAgICAgIHsvKiBUb3A6IGZ1bGwtd2lkdGggbWVkaWEgKi99XHJcbiAgICAgICAgPGRpdiBzdHlsZT17eyBib3JkZXJSYWRpdXM6IFwiMzJweCAzMnB4IDAgMFwiLCBvdmVyZmxvdzogXCJoaWRkZW5cIiB9fT5cclxuPE1lZGlhR2FsbGVyeVxyXG4gIGltYWdlcz17cm9vbS5pbWFnZXMgfHwgW119XHJcbiAgdmlkZW9Vcmw9e3Jvb20udmlkZW9Vcmx9XHJcbi8+XHJcblxyXG4gICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICBcclxuXHJcblxyXG4gICAgICAgIHsvKiBDb250ZW50IGdyaWQgKi99XHJcbiAgICAgICAgPGRpdlxyXG4gICAgICAgICAgc3R5bGU9e3tcclxuICAgICAgICAgICAgZGlzcGxheTogXCJncmlkXCIsXHJcbiAgICAgICAgICAgIGdyaWRUZW1wbGF0ZUNvbHVtbnM6IFwiMWZyIDM0MHB4XCIsXHJcbiAgICAgICAgICAgIGdhcDogXCIycmVtXCIsXHJcbiAgICAgICAgICAgIHBhZGRpbmc6IFwiMnJlbVwiLFxyXG4gICAgICAgICAgfX1cclxuICAgICAgICAgIGNsYXNzTmFtZT1cInJvb20tbW9kYWwtZ3JpZFwiXHJcbiAgICAgICAgPlxyXG4gICAgICAgICAgey8qIExFRlQgY29sdW1uICovfVxyXG4gICAgICAgICAgPGRpdiBzdHlsZT17eyBkaXNwbGF5OiBcImdyaWRcIiwgZ2FwOiBcIjEuNzVyZW1cIiB9fT5cclxuXHJcbiAgICAgICAgICAgIHsvKiBUaXRsZSBibG9jayAqL31cclxuICAgICAgICAgICAgPGRpdj5cclxuICAgICAgICAgICAgICA8ZGl2IHN0eWxlPXt7IGRpc3BsYXk6IFwiZmxleFwiLCBhbGlnbkl0ZW1zOiBcImNlbnRlclwiLCBnYXA6IDEwLCBtYXJnaW5Cb3R0b206IFwiMC42cmVtXCIgfX0+XHJcbiAgICAgICAgICAgICAgICA8c3BhbiBzdHlsZT17eyB3aWR0aDogMzIsIGhlaWdodDogMSwgYmFja2dyb3VuZDogXCJsaW5lYXItZ3JhZGllbnQoOTBkZWcsICNjOWE4NGMsIHRyYW5zcGFyZW50KVwiIH19IC8+XHJcbiAgICAgICAgICAgICAgICA8c3BhbiBzdHlsZT17e1xyXG4gICAgICAgICAgICAgICAgICBjb2xvcjogXCIjN2IxYTFhXCIsIGZvbnRGYW1pbHk6IFwiJ0NpbnplbCcsIHNlcmlmXCIsXHJcbiAgICAgICAgICAgICAgICAgIGZvbnRTaXplOiBcIjAuNzVyZW1cIiwgbGV0dGVyU3BhY2luZzogXCIwLjE4ZW1cIiwgdGV4dFRyYW5zZm9ybTogXCJ1cHBlcmNhc2VcIixcclxuICAgICAgICAgICAgICAgIH19PlxyXG4gICAgICAgICAgICAgICAgICB7cm9vbS50YWdsaW5lfVxyXG4gICAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgIDxoMiBzdHlsZT17e1xyXG4gICAgICAgICAgICAgICAgZm9udEZhbWlseTogXCInUGxheWZhaXIgRGlzcGxheScsIHNlcmlmXCIsXHJcbiAgICAgICAgICAgICAgICBmb250U2l6ZTogXCJjbGFtcCgxLjlyZW0sIDMuNXZ3LCAyLjlyZW0pXCIsXHJcbiAgICAgICAgICAgICAgICBsaW5lSGVpZ2h0OiAxLjEsIG1hcmdpbjogXCIwIDAgMC42cmVtXCIsXHJcbiAgICAgICAgICAgICAgICBjb2xvcjogXCIjMWExYTFhXCIsXHJcbiAgICAgICAgICAgICAgfX0+e3Jvb20ubmFtZX08L2gyPlxyXG4gICAgICAgICAgICAgIDxkaXYgc3R5bGU9e3sgZGlzcGxheTogXCJmbGV4XCIsIGFsaWduSXRlbXM6IFwiY2VudGVyXCIsIGdhcDogNiB9fT5cclxuICAgICAgICAgICAgICAgIHtbMSwyLDMsNCw1XS5tYXAocyA9PiAoXHJcbiAgICAgICAgICAgICAgICAgIDxTdGFyIGtleT17c30gc2l6ZT17MTR9IGZpbGw9XCIjYzlhODRjXCIgY29sb3I9XCIjYzlhODRjXCIgLz5cclxuICAgICAgICAgICAgICAgICkpfVxyXG4gICAgICAgICAgICAgICAgPHNwYW4gc3R5bGU9e3sgZm9udFNpemU6IFwiMC44MnJlbVwiLCBjb2xvcjogXCIjOGY4NTc5XCIsIG1hcmdpbkxlZnQ6IDQgfX0+XHJcbiAgICAgICAgICAgICAgICAgIFByZW1pdW0gTHV4dXJ5IMK3IHtyb29tLnRvdGFsUm9vbXN9IFJvb21zIEF2YWlsYWJsZVxyXG4gICAgICAgICAgICAgICAgPC9zcGFuPlxyXG4gICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgICAgIHsvKiBEZXNjcmlwdGlvbiAqL31cclxuICAgICAgICAgICAgPHAgc3R5bGU9e3tcclxuICAgICAgICAgICAgICBmb250RmFtaWx5OiBcIidDb3Jtb3JhbnQgR2FyYW1vbmQnLCBzZXJpZlwiLFxyXG4gICAgICAgICAgICAgIGZvbnRTaXplOiBcIjEuMTVyZW1cIiwgbGluZUhlaWdodDogMS44NSxcclxuICAgICAgICAgICAgICBjb2xvcjogXCJyZ2JhKDI2LDI2LDI2LDAuNzgpXCIsXHJcbiAgICAgICAgICAgICAgYm9yZGVyTGVmdDogXCIzcHggc29saWQgcmdiYSgyMDEsMTY4LDc2LDAuNClcIixcclxuICAgICAgICAgICAgICBwYWRkaW5nTGVmdDogXCIxcmVtXCIsXHJcbiAgICAgICAgICAgIH19Pntyb29tLmRlc2NyaXB0aW9ufTwvcD5cclxuXHJcbiAgICAgICAgICAgIHsvKiBBbWVuaXRpZXMgKi99XHJcbiAgICAgICAgICAgIHtyb29tLmFtZW5pdGllcz8ubGVuZ3RoID4gMCAmJiAoXHJcbiAgICAgICAgICAgICAgPGRpdj5cclxuICAgICAgICAgICAgICAgIDxoNCBzdHlsZT17e1xyXG4gICAgICAgICAgICAgICAgICBmb250RmFtaWx5OiBcIidDaW56ZWwnLCBzZXJpZlwiLCBmb250U2l6ZTogXCIwLjc4cmVtXCIsXHJcbiAgICAgICAgICAgICAgICAgIGxldHRlclNwYWNpbmc6IFwiMC4xNWVtXCIsIHRleHRUcmFuc2Zvcm06IFwidXBwZXJjYXNlXCIsXHJcbiAgICAgICAgICAgICAgICAgIGNvbG9yOiBcIiM3YjFhMWFcIiwgbWFyZ2luQm90dG9tOiBcIjAuOXJlbVwiLFxyXG4gICAgICAgICAgICAgICAgICBkaXNwbGF5OiBcImZsZXhcIiwgYWxpZ25JdGVtczogXCJjZW50ZXJcIiwgZ2FwOiA4LFxyXG4gICAgICAgICAgICAgICAgfX0+XHJcbiAgICAgICAgICAgICAgICAgIDxzcGFuIHN0eWxlPXt7IHdpZHRoOiAyMCwgaGVpZ2h0OiAxLCBiYWNrZ3JvdW5kOiBcIiNjOWE4NGNcIiwgZGlzcGxheTogXCJpbmxpbmUtYmxvY2tcIiB9fSAvPlxyXG4gICAgICAgICAgICAgICAgICBSb29tIEFtZW5pdGllc1xyXG4gICAgICAgICAgICAgICAgPC9oND5cclxuICAgICAgICAgICAgICAgIDxkaXYgc3R5bGU9e3tcclxuICAgICAgICAgICAgICAgICAgZGlzcGxheTogXCJncmlkXCIsXHJcbiAgICAgICAgICAgICAgICAgIGdyaWRUZW1wbGF0ZUNvbHVtbnM6IFwicmVwZWF0KGF1dG8tZmlsbCwgbWlubWF4KDE3NXB4LCAxZnIpKVwiLFxyXG4gICAgICAgICAgICAgICAgICBnYXA6IFwiMC42cmVtXCIsXHJcbiAgICAgICAgICAgICAgICB9fT5cclxuICAgICAgICAgICAgICAgICAge3Jvb20uYW1lbml0aWVzLm1hcChhbWVuaXR5ID0+IHtcclxuICAgICAgICAgICAgICAgICAgICBjb25zdCBJY29uID0gQU1FTklUWV9JQ09OU1thbWVuaXR5XSB8fCBDaGVjaztcclxuICAgICAgICAgICAgICAgICAgICByZXR1cm4gKFxyXG4gICAgICAgICAgICAgICAgICAgICAgPGRpdiBrZXk9e2FtZW5pdHl9IHN0eWxlPXt7XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIGRpc3BsYXk6IFwiZmxleFwiLCBhbGlnbkl0ZW1zOiBcImNlbnRlclwiLCBnYXA6IDEwLFxyXG4gICAgICAgICAgICAgICAgICAgICAgICBwYWRkaW5nOiBcIjAuN3JlbSAxcmVtXCIsIGJvcmRlclJhZGl1czogMTQsXHJcbiAgICAgICAgICAgICAgICAgICAgICAgIGJhY2tncm91bmQ6IFwicmdiYSgyNTUsMjU1LDI1NSwwLjg1KVwiLFxyXG4gICAgICAgICAgICAgICAgICAgICAgICBib3JkZXI6IFwiMXB4IHNvbGlkIHJnYmEoMjAxLDE2OCw3NiwwLjE4KVwiLFxyXG4gICAgICAgICAgICAgICAgICAgICAgICBmb250U2l6ZTogXCIwLjg1cmVtXCIsIGNvbG9yOiBcIiMyYzJjMmNcIixcclxuICAgICAgICAgICAgICAgICAgICAgICAgdHJhbnNpdGlvbjogXCJhbGwgMC4yNXMgZWFzZVwiLFxyXG4gICAgICAgICAgICAgICAgICAgICAgICBjdXJzb3I6IFwiZGVmYXVsdFwiLFxyXG4gICAgICAgICAgICAgICAgICAgICAgfX1cclxuICAgICAgICAgICAgICAgICAgICAgICAgb25Nb3VzZUVudGVyPXtlID0+IHsgZS5jdXJyZW50VGFyZ2V0LnN0eWxlLmJhY2tncm91bmQgPSBcInJnYmEoMjAxLDE2OCw3NiwwLjA4KVwiOyBlLmN1cnJlbnRUYXJnZXQuc3R5bGUuYm9yZGVyQ29sb3IgPSBcInJnYmEoMjAxLDE2OCw3NiwwLjQpXCI7IH19XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIG9uTW91c2VMZWF2ZT17ZSA9PiB7IGUuY3VycmVudFRhcmdldC5zdHlsZS5iYWNrZ3JvdW5kID0gXCJyZ2JhKDI1NSwyNTUsMjU1LDAuODUpXCI7IGUuY3VycmVudFRhcmdldC5zdHlsZS5ib3JkZXJDb2xvciA9IFwicmdiYSgyMDEsMTY4LDc2LDAuMTgpXCI7IH19XHJcbiAgICAgICAgICAgICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgICAgICAgICAgIDxJY29uIHNpemU9ezE1fSBjb2xvcj1cIiNjOWE4NGNcIiAvPlxyXG4gICAgICAgICAgICAgICAgICAgICAgICA8c3Bhbj57YW1lbml0eX08L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICAgICApO1xyXG4gICAgICAgICAgICAgICAgICB9KX1cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICApfVxyXG5cclxuICAgICAgICAgICAgey8qIFJvb20gZmFjdHMgKi99XHJcbiAgICAgICAgICAgIDxkaXYgc3R5bGU9e3tcclxuICAgICAgICAgICAgICBkaXNwbGF5OiBcImdyaWRcIiwgZ3JpZFRlbXBsYXRlQ29sdW1uczogXCJyZXBlYXQoMywgMWZyKVwiLCBnYXA6IFwiMC44NXJlbVwiLFxyXG4gICAgICAgICAgICB9fT5cclxuICAgICAgICAgICAgICB7W1xyXG4gICAgICAgICAgICAgICAgeyBsYWJlbDogXCJUb3RhbCBSb29tc1wiLCB2YWx1ZTogcm9vbS50b3RhbFJvb21zLCBpY29uOiBcIvCfj6hcIiB9LFxyXG4gICAgICAgICAgICAgICAgeyBsYWJlbDogXCJNYXggR3Vlc3RzXCIsIHZhbHVlOiByb29tLmNhdGVnb3J5ID09PSBcInN1aXRlXCIgPyBcIjRcIiA6IHJvb20uY2F0ZWdvcnkgPT09IFwicHJlbWl1bVwiID8gXCIzXCIgOiBcIjJcIiwgaWNvbjogXCLwn5GlXCIgfSxcclxuICAgICAgICAgICAgICAgIHsgbGFiZWw6IFwiU3RhdHVzXCIsIHZhbHVlOiByb29tLmlzQXZhaWxhYmxlID8gXCJBdmFpbGFibGVcIiA6IFwiVW5hdmFpbGFibGVcIiwgaWNvbjogcm9vbS5pc0F2YWlsYWJsZSA/IFwi4pyTXCIgOiBcIuKcl1wiLCBjb2xvcjogcm9vbS5pc0F2YWlsYWJsZSA/IFwiIzczZDk4ZlwiIDogXCIjZmY4ZjhmXCIgfSxcclxuICAgICAgICAgICAgICBdLm1hcCgoeyBsYWJlbCwgdmFsdWUsIGljb24sIGNvbG9yIH0pID0+IChcclxuICAgICAgICAgICAgICAgIDxkaXYga2V5PXtsYWJlbH0gc3R5bGU9e3tcclxuICAgICAgICAgICAgICAgICAgcGFkZGluZzogXCIxLjFyZW1cIiwgYm9yZGVyUmFkaXVzOiAyMCwgdGV4dEFsaWduOiBcImNlbnRlclwiLFxyXG4gICAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kOiBcImxpbmVhci1ncmFkaWVudCgxNDVkZWcsIHJnYmEoMjYsMjYsMjYsMC45NCksIHJnYmEoMTIzLDI2LDI2LDAuODgpKVwiLFxyXG4gICAgICAgICAgICAgICAgICBjb2xvcjogXCIjZmFmOGY1XCIsXHJcbiAgICAgICAgICAgICAgICAgIGJvcmRlcjogXCIxcHggc29saWQgcmdiYSgyMDEsMTY4LDc2LDAuMTUpXCIsXHJcbiAgICAgICAgICAgICAgICB9fT5cclxuICAgICAgICAgICAgICAgICAgPGRpdiBzdHlsZT17eyBmb250U2l6ZTogXCIxLjFyZW1cIiwgbWFyZ2luQm90dG9tOiA0IH19PntpY29ufTwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICA8ZGl2IHN0eWxlPXt7XHJcbiAgICAgICAgICAgICAgICAgICAgZm9udEZhbWlseTogXCInUGxheWZhaXIgRGlzcGxheScsIHNlcmlmXCIsIGZvbnRTaXplOiBcIjEuNXJlbVwiLFxyXG4gICAgICAgICAgICAgICAgICAgIGNvbG9yOiBjb2xvciB8fCBcIiNjOWE4NGNcIixcclxuICAgICAgICAgICAgICAgICAgfX0+e3ZhbHVlfTwvZGl2PlxyXG4gICAgICAgICAgICAgICAgICA8ZGl2IHN0eWxlPXt7IGZvbnRTaXplOiBcIjAuN3JlbVwiLCBjb2xvcjogXCJyZ2JhKDI1MCwyNDgsMjQ1LDAuNilcIiwgbGV0dGVyU3BhY2luZzogXCIwLjA4ZW1cIiwgdGV4dFRyYW5zZm9ybTogXCJ1cHBlcmNhc2VcIiwgbWFyZ2luVG9wOiAyIH19PntsYWJlbH08L2Rpdj5cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICkpfVxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgICAgIHsvKiBQb2xpY2llcyAqL31cclxuICAgICAgICAgICAgPGRpdiBzdHlsZT17e1xyXG4gICAgICAgICAgICAgIHBhZGRpbmc6IFwiMS4yNXJlbVwiLCBib3JkZXJSYWRpdXM6IDIwLFxyXG4gICAgICAgICAgICAgIGJhY2tncm91bmQ6IFwibGluZWFyLWdyYWRpZW50KDEzNWRlZywgcmdiYSgyMDEsMTY4LDc2LDAuMDYpLCByZ2JhKDIwMSwxNjgsNzYsMC4wMikpXCIsXHJcbiAgICAgICAgICAgICAgYm9yZGVyOiBcIjFweCBzb2xpZCByZ2JhKDIwMSwxNjgsNzYsMC4xOClcIixcclxuICAgICAgICAgICAgfX0+XHJcbiAgICAgICAgICAgICAgPGg0IHN0eWxlPXt7XHJcbiAgICAgICAgICAgICAgICBmb250RmFtaWx5OiBcIidDaW56ZWwnLCBzZXJpZlwiLCBmb250U2l6ZTogXCIwLjc1cmVtXCIsXHJcbiAgICAgICAgICAgICAgICBsZXR0ZXJTcGFjaW5nOiBcIjAuMTVlbVwiLCB0ZXh0VHJhbnNmb3JtOiBcInVwcGVyY2FzZVwiLFxyXG4gICAgICAgICAgICAgICAgY29sb3I6IFwiIzdiMWExYVwiLCBtYXJnaW5Cb3R0b206IFwiMC43NXJlbVwiLFxyXG4gICAgICAgICAgICAgIH19PlN0YXkgUG9saWNpZXM8L2g0PlxyXG4gICAgICAgICAgICAgIDxkaXYgc3R5bGU9e3sgZGlzcGxheTogXCJncmlkXCIsIGdhcDogXCIwLjVyZW1cIiB9fT5cclxuICAgICAgICAgICAgICAgIHtbXHJcbiAgICAgICAgICAgICAgICAgIFwiQ2hlY2staW4gZnJvbSAyOjAwIFBNIMK3IENoZWNrLW91dCBieSAxMTowMCBBTVwiLFxyXG4gICAgICAgICAgICAgICAgICBcIkZyZWUgY2FuY2VsbGF0aW9uIHdpdGhpbiAyNCBob3VycyBvZiBib29raW5nXCIsXHJcbiAgICAgICAgICAgICAgICAgIFwiQ29tcGxpbWVudGFyeSBicmVha2Zhc3QgZm9yIFByZW1pdW0gJiBTdWl0ZSByb29tc1wiLFxyXG4gICAgICAgICAgICAgICAgICBcIkFpcnBvcnQgdHJhbnNmZXIgYXZhaWxhYmxlIG9uIHJlcXVlc3RcIixcclxuICAgICAgICAgICAgICAgIF0ubWFwKGl0ZW0gPT4gKFxyXG4gICAgICAgICAgICAgICAgICA8ZGl2IGtleT17aXRlbX0gc3R5bGU9e3sgZGlzcGxheTogXCJmbGV4XCIsIGdhcDogMTAsIGFsaWduSXRlbXM6IFwiZmxleC1zdGFydFwiLCBmb250U2l6ZTogXCIwLjg2cmVtXCIsIGNvbG9yOiBcIiM1YTVhNWFcIiB9fT5cclxuICAgICAgICAgICAgICAgICAgICA8Q2hlY2sgc2l6ZT17MTR9IGNvbG9yPVwiIzczZDk4ZlwiIHN0eWxlPXt7IGZsZXhTaHJpbms6IDAsIG1hcmdpblRvcDogMiB9fSAvPlxyXG4gICAgICAgICAgICAgICAgICAgIHtpdGVtfVxyXG4gICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICkpfVxyXG4gICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgIHsvKiBSSUdIVCBjb2x1bW4g4oCUIHN0aWNreSBwcmljaW5nICovfVxyXG4gICAgICAgICAgPGRpdj5cclxuICAgICAgICAgICAgPGRpdiBzdHlsZT17e1xyXG4gICAgICAgICAgICAgIHBvc2l0aW9uOiBcInN0aWNreVwiLCB0b3A6IFwiMXJlbVwiLFxyXG4gICAgICAgICAgICAgIGJvcmRlclJhZGl1czogMjYsXHJcbiAgICAgICAgICAgICAgYmFja2dyb3VuZDogXCJsaW5lYXItZ3JhZGllbnQoMTgwZGVnLCAjZmZmIDAlLCAjZmZmZGY5IDEwMCUpXCIsXHJcbiAgICAgICAgICAgICAgYm9yZGVyOiBcIjFweCBzb2xpZCByZ2JhKDIwMSwxNjgsNzYsMC4zNSlcIixcclxuICAgICAgICAgICAgICBib3hTaGFkb3c6IFwiMCAyMHB4IDYwcHggcmdiYSgwLDAsMCwwLjEyKVwiLFxyXG4gICAgICAgICAgICAgIHBhZGRpbmc6IFwiMS41cmVtXCIsXHJcbiAgICAgICAgICAgICAgZGlzcGxheTogXCJncmlkXCIsIGdhcDogXCIxcmVtXCIsXHJcbiAgICAgICAgICAgIH19PlxyXG5cclxuICAgICAgICAgICAgICB7LyogQXZhaWxhYmlsaXR5IGJhZGdlICovfVxyXG4gICAgICAgICAgICAgIDxkaXYgc3R5bGU9e3tcclxuICAgICAgICAgICAgICAgIGRpc3BsYXk6IFwiZmxleFwiLCBhbGlnbkl0ZW1zOiBcImNlbnRlclwiLCBnYXA6IDgsXHJcbiAgICAgICAgICAgICAgICBwYWRkaW5nOiBcIjAuNXJlbSAwLjg1cmVtXCIsIGJvcmRlclJhZGl1czogOTk5LFxyXG4gICAgICAgICAgICAgICAgYmFja2dyb3VuZDogcm9vbS5pc0F2YWlsYWJsZSA/IFwicmdiYSgxMTUsMjE3LDE0MywwLjEpXCIgOiBcInJnYmEoMjU1LDE0MywxNDMsMC4xKVwiLFxyXG4gICAgICAgICAgICAgICAgYm9yZGVyOiBgMXB4IHNvbGlkICR7cm9vbS5pc0F2YWlsYWJsZSA/IFwicmdiYSgxMTUsMjE3LDE0MywwLjM1KVwiIDogXCJyZ2JhKDI1NSwxNDMsMTQzLDAuMzUpXCJ9YCxcclxuICAgICAgICAgICAgICAgIHdpZHRoOiBcImZpdC1jb250ZW50XCIsXHJcbiAgICAgICAgICAgICAgfX0+XHJcbiAgICAgICAgICAgICAgICA8ZGl2IHN0eWxlPXt7XHJcbiAgICAgICAgICAgICAgICAgIHdpZHRoOiA4LCBoZWlnaHQ6IDgsIGJvcmRlclJhZGl1czogXCI1MCVcIixcclxuICAgICAgICAgICAgICAgICAgYmFja2dyb3VuZDogcm9vbS5pc0F2YWlsYWJsZSA/IFwiIzczZDk4ZlwiIDogXCIjZmY4ZjhmXCIsXHJcbiAgICAgICAgICAgICAgICAgIGJveFNoYWRvdzogYDAgMCA4cHggJHtyb29tLmlzQXZhaWxhYmxlID8gXCJyZ2JhKDExNSwyMTcsMTQzLDAuNilcIiA6IFwicmdiYSgyNTUsMTQzLDE0MywwLjYpXCJ9YCxcclxuICAgICAgICAgICAgICAgICAgYW5pbWF0aW9uOiBcInN0YXR1c1B1bHNlIDJzIGVhc2UtaW4tb3V0IGluZmluaXRlXCIsXHJcbiAgICAgICAgICAgICAgICB9fSAvPlxyXG4gICAgICAgICAgICAgICAgPHNwYW4gc3R5bGU9e3sgZm9udFNpemU6IFwiMC44cmVtXCIsIGZvbnRXZWlnaHQ6IDYwMCwgY29sb3I6IHJvb20uaXNBdmFpbGFibGUgPyBcIiMxZjdjMmRcIiA6IFwiI2FhMmMyY1wiIH19PlxyXG4gICAgICAgICAgICAgICAgICB7cm9vbS5pc0F2YWlsYWJsZSA/IFwiQXZhaWxhYmxlIHRvIEJvb2tcIiA6IFwiQ3VycmVudGx5IFVuYXZhaWxhYmxlXCJ9XHJcbiAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgICAgIHsvKiBTaW5nbGUgb2NjdXBhbmN5ICovfVxyXG4gICAgICAgICAgICAgIDxkaXYgc3R5bGU9e3tcclxuICAgICAgICAgICAgICAgIHBhZGRpbmc6IFwiMXJlbSAxLjFyZW1cIiwgYm9yZGVyUmFkaXVzOiAxOCxcclxuICAgICAgICAgICAgICAgIGJhY2tncm91bmQ6IFwicmdiYSgyMDEsMTY4LDc2LDAuMDcpXCIsXHJcbiAgICAgICAgICAgICAgICBib3JkZXI6IFwiMXB4IHNvbGlkIHJnYmEoMjAxLDE2OCw3NiwwLjIyKVwiLFxyXG4gICAgICAgICAgICAgIH19PlxyXG4gICAgICAgICAgICAgICAgPGRpdiBzdHlsZT17eyBkaXNwbGF5OiBcImZsZXhcIiwgYWxpZ25JdGVtczogXCJjZW50ZXJcIiwgZ2FwOiA4LCBjb2xvcjogXCIjMmMyYzJjXCIsIG1hcmdpbkJvdHRvbTogNiB9fT5cclxuICAgICAgICAgICAgICAgICAgPEJlZERvdWJsZSBzaXplPXsxNX0gY29sb3I9XCIjYzlhODRjXCIgLz5cclxuICAgICAgICAgICAgICAgICAgPHNwYW4gc3R5bGU9e3sgZm9udEZhbWlseTogXCInQ2luemVsJywgc2VyaWZcIiwgZm9udFNpemU6IFwiMC43MnJlbVwiLCBsZXR0ZXJTcGFjaW5nOiBcIjAuMWVtXCIsIHRleHRUcmFuc2Zvcm06IFwidXBwZXJjYXNlXCIgfX0+XHJcbiAgICAgICAgICAgICAgICAgICAgU2luZ2xlIE9jY3VwYW5jeVxyXG4gICAgICAgICAgICAgICAgICA8L3NwYW4+XHJcbiAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgIDxkaXYgc3R5bGU9e3sgZm9udEZhbWlseTogXCInUGxheWZhaXIgRGlzcGxheScsIHNlcmlmXCIsIGZvbnRTaXplOiBcIjJyZW1cIiwgY29sb3I6IFwiIzFhMWExYVwiLCBsaW5lSGVpZ2h0OiAxIH19PlxyXG4gICAgICAgICAgICAgICAgICB7Zm9ybWF0Q3VycmVuY3kocm9vbS5zaW5nbGVQcmljZSl9XHJcbiAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgIDxkaXYgc3R5bGU9e3sgZm9udFNpemU6IFwiMC43NHJlbVwiLCBjb2xvcjogXCIjOGY4NTc5XCIsIG1hcmdpblRvcDogNCB9fT5wZXIgbmlnaHQgwrcgdGF4ZXMgZXh0cmE8L2Rpdj5cclxuICAgICAgICAgICAgICA8L2Rpdj5cclxuXHJcbiAgICAgICAgICAgICAgey8qIERvdWJsZSBvY2N1cGFuY3kgKi99XHJcbiAgICAgICAgICAgICAgPGRpdiBzdHlsZT17e1xyXG4gICAgICAgICAgICAgICAgcGFkZGluZzogXCIxcmVtIDEuMXJlbVwiLCBib3JkZXJSYWRpdXM6IDE4LFxyXG4gICAgICAgICAgICAgICAgYmFja2dyb3VuZDogXCJyZ2JhKDEyMywyNiwyNiwwLjA1KVwiLFxyXG4gICAgICAgICAgICAgICAgYm9yZGVyOiBcIjFweCBzb2xpZCByZ2JhKDEyMywyNiwyNiwwLjE1KVwiLFxyXG4gICAgICAgICAgICAgIH19PlxyXG4gICAgICAgICAgICAgICAgPGRpdiBzdHlsZT17eyBkaXNwbGF5OiBcImZsZXhcIiwgYWxpZ25JdGVtczogXCJjZW50ZXJcIiwgZ2FwOiA4LCBjb2xvcjogXCIjMmMyYzJjXCIsIG1hcmdpbkJvdHRvbTogNiB9fT5cclxuICAgICAgICAgICAgICAgICAgPFVzZXJzIHNpemU9ezE1fSBjb2xvcj1cIiM3YjFhMWFcIiAvPlxyXG4gICAgICAgICAgICAgICAgICA8c3BhbiBzdHlsZT17eyBmb250RmFtaWx5OiBcIidDaW56ZWwnLCBzZXJpZlwiLCBmb250U2l6ZTogXCIwLjcycmVtXCIsIGxldHRlclNwYWNpbmc6IFwiMC4xZW1cIiwgdGV4dFRyYW5zZm9ybTogXCJ1cHBlcmNhc2VcIiB9fT5cclxuICAgICAgICAgICAgICAgICAgICBEb3VibGUgT2NjdXBhbmN5XHJcbiAgICAgICAgICAgICAgICAgIDwvc3Bhbj5cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgPGRpdiBzdHlsZT17eyBmb250RmFtaWx5OiBcIidQbGF5ZmFpciBEaXNwbGF5Jywgc2VyaWZcIiwgZm9udFNpemU6IFwiMnJlbVwiLCBjb2xvcjogXCIjMWExYTFhXCIsIGxpbmVIZWlnaHQ6IDEgfX0+XHJcbiAgICAgICAgICAgICAgICAgIHtmb3JtYXRDdXJyZW5jeShyb29tLmRvdWJsZVByaWNlKX1cclxuICAgICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgICAgPGRpdiBzdHlsZT17eyBmb250U2l6ZTogXCIwLjc0cmVtXCIsIGNvbG9yOiBcIiM4Zjg1NzlcIiwgbWFyZ2luVG9wOiA0IH19PnBlciBuaWdodCDCtyB0YXhlcyBleHRyYTwvZGl2PlxyXG4gICAgICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgICAgICB7LyogQ1RBICovfVxyXG4gICAgICAgICAgICAgIDxidXR0b25cclxuICAgICAgICAgICAgICAgIHR5cGU9XCJidXR0b25cIlxyXG4gICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4geyBvbkNsb3NlKCk7IG9wZW5Cb29raW5nKHJvb20pOyB9fVxyXG4gICAgICAgICAgICAgICAgZGlzYWJsZWQ9eyFyb29tLmlzQXZhaWxhYmxlfVxyXG4gICAgICAgICAgICAgICAgc3R5bGU9e3tcclxuICAgICAgICAgICAgICAgICAgd2lkdGg6IFwiMTAwJVwiLCBwYWRkaW5nOiBcIjEuMXJlbVwiLFxyXG4gICAgICAgICAgICAgICAgICBib3JkZXJSYWRpdXM6IDk5OSwgYm9yZGVyOiBcIm5vbmVcIixcclxuICAgICAgICAgICAgICAgICAgYmFja2dyb3VuZDogcm9vbS5pc0F2YWlsYWJsZVxyXG4gICAgICAgICAgICAgICAgICAgID8gXCJsaW5lYXItZ3JhZGllbnQoMTM1ZGVnLCAjZThkNWEzLCAjYzlhODRjKVwiXHJcbiAgICAgICAgICAgICAgICAgICAgOiBcInJnYmEoMjAwLDIwMCwyMDAsMC40KVwiLFxyXG4gICAgICAgICAgICAgICAgICBjb2xvcjogcm9vbS5pc0F2YWlsYWJsZSA/IFwiIzFhMWExYVwiIDogXCIjODg4XCIsXHJcbiAgICAgICAgICAgICAgICAgIGZvbnRXZWlnaHQ6IDcwMCwgZm9udFNpemU6IFwiMC45NXJlbVwiLCBjdXJzb3I6IHJvb20uaXNBdmFpbGFibGUgPyBcInBvaW50ZXJcIiA6IFwibm90LWFsbG93ZWRcIixcclxuICAgICAgICAgICAgICAgICAgYm94U2hhZG93OiByb29tLmlzQXZhaWxhYmxlID8gXCIwIDEycHggMjhweCByZ2JhKDIwMSwxNjgsNzYsMC4zKVwiIDogXCJub25lXCIsXHJcbiAgICAgICAgICAgICAgICAgIHRyYW5zaXRpb246IFwiYWxsIDAuM3MgZWFzZVwiLFxyXG4gICAgICAgICAgICAgICAgICBsZXR0ZXJTcGFjaW5nOiBcIjAuMDRlbVwiLFxyXG4gICAgICAgICAgICAgICAgICBmb250RmFtaWx5OiBcIidDaW56ZWwnLCBzZXJpZlwiLFxyXG4gICAgICAgICAgICAgICAgfX1cclxuICAgICAgICAgICAgICAgIG9uTW91c2VFbnRlcj17ZSA9PiB7IGlmIChyb29tLmlzQXZhaWxhYmxlKSB7IGUuY3VycmVudFRhcmdldC5zdHlsZS50cmFuc2Zvcm0gPSBcInRyYW5zbGF0ZVkoLTJweClcIjsgZS5jdXJyZW50VGFyZ2V0LnN0eWxlLmJveFNoYWRvdyA9IFwiMCAxOHB4IDQwcHggcmdiYSgyMDEsMTY4LDc2LDAuNDUpXCI7IH19fVxyXG4gICAgICAgICAgICAgICAgb25Nb3VzZUxlYXZlPXtlID0+IHsgZS5jdXJyZW50VGFyZ2V0LnN0eWxlLnRyYW5zZm9ybSA9IFwibm9uZVwiOyBlLmN1cnJlbnRUYXJnZXQuc3R5bGUuYm94U2hhZG93ID0gcm9vbS5pc0F2YWlsYWJsZSA/IFwiMCAxMnB4IDI4cHggcmdiYSgyMDEsMTY4LDc2LDAuMylcIiA6IFwibm9uZVwiOyB9fVxyXG4gICAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICAgIFJlc2VydmUgVGhpcyBSb29tXHJcbiAgICAgICAgICAgICAgPC9idXR0b24+XHJcblxyXG4gICAgICAgICAgICAgIDxidXR0b25cclxuICAgICAgICAgICAgICAgIHR5cGU9XCJidXR0b25cIlxyXG4gICAgICAgICAgICAgICAgb25DbGljaz17b25DbG9zZX1cclxuICAgICAgICAgICAgICAgIHN0eWxlPXt7XHJcbiAgICAgICAgICAgICAgICAgIHdpZHRoOiBcIjEwMCVcIiwgcGFkZGluZzogXCIwLjhyZW1cIixcclxuICAgICAgICAgICAgICAgICAgYm9yZGVyUmFkaXVzOiA5OTksXHJcbiAgICAgICAgICAgICAgICAgIGJvcmRlcjogXCIxcHggc29saWQgcmdiYSgyMDEsMTY4LDc2LDAuMylcIixcclxuICAgICAgICAgICAgICAgICAgYmFja2dyb3VuZDogXCJ0cmFuc3BhcmVudFwiLFxyXG4gICAgICAgICAgICAgICAgICBjb2xvcjogXCIjNWE1YTVhXCIsIGZvbnRTaXplOiBcIjAuODVyZW1cIiwgY3Vyc29yOiBcInBvaW50ZXJcIixcclxuICAgICAgICAgICAgICAgICAgdHJhbnNpdGlvbjogXCJhbGwgMC4yNXMgZWFzZVwiLFxyXG4gICAgICAgICAgICAgICAgfX1cclxuICAgICAgICAgICAgICAgIG9uTW91c2VFbnRlcj17ZSA9PiBlLmN1cnJlbnRUYXJnZXQuc3R5bGUuYmFja2dyb3VuZCA9IFwicmdiYSgyMDEsMTY4LDc2LDAuMDgpXCJ9XHJcbiAgICAgICAgICAgICAgICBvbk1vdXNlTGVhdmU9e2UgPT4gZS5jdXJyZW50VGFyZ2V0LnN0eWxlLmJhY2tncm91bmQgPSBcInRyYW5zcGFyZW50XCJ9XHJcbiAgICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgICAgQ29udGludWUgQnJvd3NpbmdcclxuICAgICAgICAgICAgICA8L2J1dHRvbj5cclxuXHJcbiAgICAgICAgICAgICAgey8qIFRydXN0IGluZGljYXRvcnMgKi99XHJcbiAgICAgICAgICAgICAgPGRpdiBzdHlsZT17e1xyXG4gICAgICAgICAgICAgICAgZGlzcGxheTogXCJncmlkXCIsIGdhcDogXCIwLjQ1cmVtXCIsXHJcbiAgICAgICAgICAgICAgICBwYWRkaW5nOiBcIjAuOXJlbVwiLFxyXG4gICAgICAgICAgICAgICAgYm9yZGVyUmFkaXVzOiAxNixcclxuICAgICAgICAgICAgICAgIGJhY2tncm91bmQ6IFwicmdiYSgyNiwyNiwyNiwwLjAzKVwiLFxyXG4gICAgICAgICAgICAgICAgYm9yZGVyOiBcIjFweCBzb2xpZCByZ2JhKDIwMSwxNjgsNzYsMC4xKVwiLFxyXG4gICAgICAgICAgICAgIH19PlxyXG4gICAgICAgICAgICAgICAge1tcclxuICAgICAgICAgICAgICAgICAgXCJGcmVlIGNhbmNlbGxhdGlvbiB3aXRoaW4gMjQgaG91cnNcIixcclxuICAgICAgICAgICAgICAgICAgXCJDb21wbGltZW50YXJ5IFdpLUZpIHRocm91Z2hvdXRcIixcclxuICAgICAgICAgICAgICAgICAgXCJDaGVjay1pbiAyUE0gwrcgQ2hlY2stb3V0IDExQU1cIixcclxuICAgICAgICAgICAgICAgICAgXCJTZWN1cmUgUmF6b3JwYXkgcGF5bWVudHNcIixcclxuICAgICAgICAgICAgICAgIF0ubWFwKGl0ZW0gPT4gKFxyXG4gICAgICAgICAgICAgICAgICA8ZGl2IGtleT17aXRlbX0gc3R5bGU9e3sgZGlzcGxheTogXCJmbGV4XCIsIGdhcDogOCwgYWxpZ25JdGVtczogXCJjZW50ZXJcIiwgZm9udFNpemU6IFwiMC43OHJlbVwiLCBjb2xvcjogXCIjNWE1YTVhXCIgfX0+XHJcbiAgICAgICAgICAgICAgICAgICAgPENoZWNrIHNpemU9ezEyfSBjb2xvcj1cIiM3M2Q5OGZcIiAvPlxyXG4gICAgICAgICAgICAgICAgICAgIHtpdGVtfVxyXG4gICAgICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICAgICkpfVxyXG4gICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICA8L2Rpdj5cclxuXHJcbiAgICAgIDxzdHlsZT57YFxyXG4gICAgICAgIEBrZXlmcmFtZXMgbW9kYWxFbnRyYW5jZSB7XHJcbiAgICAgICAgICBmcm9tIHsgb3BhY2l0eTogMDsgdHJhbnNmb3JtOiBzY2FsZSgwLjk0KSB0cmFuc2xhdGVZKDIwcHgpOyB9XHJcbiAgICAgICAgICB0byB7IG9wYWNpdHk6IDE7IHRyYW5zZm9ybTogc2NhbGUoMSkgdHJhbnNsYXRlWSgwKTsgfVxyXG4gICAgICAgIH1cclxuICAgICAgICBAa2V5ZnJhbWVzIHN0YXR1c1B1bHNlIHtcclxuICAgICAgICAgIDAlLCAxMDAlIHsgb3BhY2l0eTogMTsgfVxyXG4gICAgICAgICAgNTAlIHsgb3BhY2l0eTogMC40OyB9XHJcbiAgICAgICAgfVxyXG4gICAgICAgIEBtZWRpYSAobWF4LXdpZHRoOiA3NjhweCkge1xyXG4gICAgICAgICAgLnJvb20tbW9kYWwtZ3JpZCB7XHJcbiAgICAgICAgICAgIGdyaWQtdGVtcGxhdGUtY29sdW1uczogMWZyICFpbXBvcnRhbnQ7XHJcbiAgICAgICAgICB9XHJcbiAgICAgICAgfVxyXG4gICAgICBgfTwvc3R5bGU+XHJcbiAgICA8L2Rpdj5cclxuICApO1xyXG59O1xyXG5cclxuZXhwb3J0IGRlZmF1bHQgUm9vbURldGFpbE1vZGFsOyJdLCJmaWxlIjoiQzovVXNlcnMvdmVsY2gvRG93bmxvYWRzL0JhZWxUcmVlSG90ZWxzL2NsaWVudC9zcmMvY29tcG9uZW50cy9Sb29tRGV0YWlsTW9kYWwuanN4In0=

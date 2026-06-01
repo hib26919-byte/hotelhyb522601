@@ -1,11 +1,10 @@
 import { useMemo } from "react";
 import {
-  collection,
   doc,
   limit,
   orderBy,
-  query,
   updateDoc,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "../utils/firebase";
 import { useFirestoreCollection } from "./useFirestore";
@@ -31,15 +30,15 @@ const { data, loading, error } = useFirestoreCollection("notifications", {
   };
 
   const markAllAsRead = async () => {
-    await Promise.all(
-      data
-        .filter((notification) => !notification.isRead)
-        .map((notification) =>
-          updateDoc(doc(db, "notifications", notification.id), {
-            isRead: true,
-          }),
-        ),
-    );
+    const batch = writeBatch(db);
+    data
+      .filter((notification) => !notification.isRead)
+      .forEach((notification) => {
+        batch.update(doc(db, "notifications", notification.id), {
+          isRead: true,
+        });
+      });
+    await batch.commit();
   };
 
   return {
@@ -53,4 +52,3 @@ const { data, loading, error } = useFirestoreCollection("notifications", {
 };
 
 export default useNotifications;
-

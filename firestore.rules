@@ -125,7 +125,24 @@ service cloud.firestore {
     }
 
     match /notifications/{notifId} {
-      allow read, write: if isAdmin();
+      allow create: if isSignedIn() &&
+        request.resource.data.keys().hasOnly([
+          "type",
+          "message",
+          "isRead",
+          "relatedId",
+          "relatedType",
+          "userName",
+          "roomCategory",
+          "amount",
+          "createdAt"
+        ]) &&
+        request.resource.data.type is string &&
+        request.resource.data.message is string &&
+        request.resource.data.isRead == false &&
+        request.resource.data.createdAt == request.time;
+
+      allow read, update, delete: if isAdmin();
     }
 
     match /inquiries/{inquiryId} {
@@ -134,6 +151,10 @@ service cloud.firestore {
     }
 
     match /revenue/{dateId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /monthlyReports/{reportId} {
       allow read, write: if isAdmin();
     }
   }

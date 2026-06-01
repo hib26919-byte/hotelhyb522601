@@ -9,6 +9,8 @@ import {
   updatePassword,
 } from "firebase/auth";
 import {
+  addDoc,
+  collection,
   doc,
   getDoc,
   serverTimestamp,
@@ -38,6 +40,14 @@ export const AuthProvider = ({ children }) => {
         bookingCount: 0,
       };
       await setDoc(reference, baseProfile);
+      await addDoc(collection(db, "notifications"), {
+        type: "new_user",
+        message: `New user registered: ${baseProfile.name} (${baseProfile.email})`,
+        isRead: false,
+        relatedId: user.uid,
+        relatedType: "user",
+        createdAt: serverTimestamp(),
+      }).catch(() => {});
       setProfile({ id: user.uid, ...baseProfile });
       return;
     }
@@ -70,6 +80,14 @@ export const AuthProvider = ({ children }) => {
       bookingCount: 0,
     };
     await setDoc(doc(db, "users", credentials.user.uid), userDocument);
+    await addDoc(collection(db, "notifications"), {
+      type: "new_user",
+      message: `New user registered: ${name} (${email})`,
+      isRead: false,
+      relatedId: credentials.user.uid,
+      relatedType: "user",
+      createdAt: serverTimestamp(),
+    }).catch(() => {});
     setProfile({ id: credentials.user.uid, ...userDocument });
     return credentials.user;
   };
@@ -122,4 +140,3 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-

@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, orderBy, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { CheckCircle, Download, Pencil, Save, Trash2, X } from "lucide-react";
@@ -36,8 +36,10 @@ const toDateInput = (value) => {
 };
 
 const AdminBookings = () => {
+  const bookingConstraints = useMemo(() => [orderBy("createdAt", "desc")], []);
   const { data: bookings } = useFirestoreCollection("bookings", {
     fallbackData: [],
+    queryConstraints: bookingConstraints,
     realtime: true,
   });
   const [search, setSearch] = useState("");
@@ -168,9 +170,11 @@ const AdminBookings = () => {
       const payload = {
         ...manualBooking,
         roomId: room?.id || manualBooking.roomCategory,
+        roomName: room?.name || manualBooking.roomCategory,
         totalAmount: Number(manualBooking.totalAmount),
         guests: Number(manualBooking.guests),
         userId: manualBooking.userId || "manual-entry",
+        source: manualBooking.userId === "manual-entry" ? "walk-in" : "phone",
         updatedAt: serverTimestamp(),
       };
 

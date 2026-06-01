@@ -1,0 +1,145 @@
+import {
+  addDays,
+  eachDayOfInterval,
+  format,
+  isAfter,
+  isBefore,
+  isSameDay,
+  isValid,
+  startOfDay,
+} from "date-fns";
+import { normalizeDate } from "./dateHelpers";
+
+export const ROOM_TOTALS = {
+  standard: 5,
+  executive: 55,
+  premium: 10,
+  suite: 15,
+};
+
+export const ACTIVE_BOOKING_STATUSES = new Set(["confirmed", "pending"]);
+
+export const getDateKey = (value) => format(startOfDay(normalizeDate(value)), "yyyy-MM-dd");
+
+export const toLocalDate = (key) => {
+  const [year, month, day] = key.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
+
+export const getRoomTotal = (roomOrCategory) => {
+  if (!roomOrCategory) return 1;
+  if (typeof roomOrCategory === "string") return ROOM_TOTALS[roomOrCategory] || 1;
+  return Number(roomOrCategory.totalRooms || ROOM_TOTALS[roomOrCategory.category] || 1);
+};
+
+export const isActiveBooking = (booking) =>
+  ACTIVE_BOOKING_STATUSES.has((booking?.status || "").toLowerCase());
+
+export const bookingMatchesCategory = (booking, category) =>
+  !category || (booking?.roomCategory || "").toLowerCase() === category.toLowerCase();
+
+export const bookingOverlapsRange = (booking, requestedCheckIn, requestedCheckOut) => {
+  const checkIn = startOfDay(normalizeDate(booking.checkIn));
+  const checkOut = startOfDay(normalizeDate(booking.checkOut));
+  const requestedStart = startOfDay(normalizeDate(requestedCheckIn));
+  const requestedEnd = startOfDay(normalizeDate(requestedCheckOut));
+
+  if (![checkIn, checkOut, requestedStart, requestedEnd].every(isValid)) return false;
+  return isBefore(checkIn, requestedEnd) && isAfter(checkOut, requestedStart);
+};
+
+export const getDatesInRange = (start, end, { includeCheckout = false } = {}) => {
+  if (!start || !end) return [];
+  const first = startOfDay(normalizeDate(start));
+  const last = startOfDay(normalizeDate(end));
+  if (!isValid(first) || !isValid(last) || isAfter(first, last)) return [];
+
+  const endDate = includeCheckout ? last : addDays(last, -1);
+  if (isBefore(endDate, first)) return [];
+
+  return eachDayOfInterval({ start: first, end: endDate });
+};
+
+export const calculateAvailability = ({
+  bookings = [],
+  category,
+  checkIn,
+  checkOut,
+  totalRooms = getRoomTotal(category),
+}) => {
+  if (!checkIn || !checkOut) {
+    return {
+      occupied: 0,
+      available: Number(totalRooms || 0),
+      total: Number(totalRooms || 0),
+      isAvailable: true,
+    };
+  }
+
+  const occupied = bookings.filter(
+    (booking) =>
+      isActiveBooking(booking) &&
+      bookingMatchesCategory(booking, category) &&
+      bookingOverlapsRange(booking, checkIn, checkOut),
+  ).length;
+
+  const total = Number(totalRooms || 0);
+  const available = Math.max(total - occupied, 0);
+
+  return {
+    occupied,
+    available,
+    total,
+    isAvailable: available > 0,
+  };
+};
+
+export const buildAvailabilityCalendar = ({
+  bookings = [],
+  category,
+  totalRooms = getRoomTotal(category),
+  startDate = new Date(),
+  days = 60,
+}) => {
+  const first = startOfDay(startDate);
+  const calendar = new Map();
+
+  Array.from({ length: days }).forEach((_, index) => {
+    const day = addDays(first, index);
+    const nextDay = addDays(day, 1);
+    const availability = calculateAvailability({
+      bookings,
+      category,
+      checkIn: day,
+      checkOut: nextDay,
+      totalRooms,
+    });
+
+    let status = "available";
+    if (availability.available <= 0) status = "full";
+    else if (availability.available <= 3) status = "limited";
+
+    calendar.set(getDateKey(day), {
+      ...availability,
+      status,
+      date: day,
+    });
+  });
+
+  return calendar;
+};
+
+export const getAvailabilityLabel = ({ available, total }) => {
+  if (available <= 0) return "Fully Booked";
+  if (available <= 3) return `Limited - ${available} left`;
+  if (available < total) return `${available} rooms available`;
+  return "Available";
+};
+
+export const isRangeSelectable = ({ checkIn, checkOut, availabilityCalendar }) => {
+  const stayDates = getDatesInRange(checkIn, checkOut);
+  return stayDates.every((day) => availabilityCalendar.get(getDateKey(day))?.status !== "full");
+};
+
+export const isSameCalendarDay = (left, right) =>
+  left && right && isSameDay(normalizeDate(left), normalizeDate(right));

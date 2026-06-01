@@ -2,6 +2,7 @@ import { ArrowRight, Building2, MapPinned, Plane, TrainFront, TramFront, Star, S
 import { Link } from "react-router-dom";
 import { useFirestoreCollection } from "../hooks/useFirestore";
 import DiningSection from "../components/DiningSection";
+import GoogleReviewsSection from "../components/GoogleReviewsSection";
 import HeroSlider from "../components/HeroSlider";
 import RoomCard from "../components/RoomCard";
 import SectionHeading from "../components/SectionHeading";
@@ -170,6 +171,8 @@ const Home = () => {
 
       {/* ── Hero ── */}
       <HeroSlider />
+
+      <GoogleReviewsSection />
 
       {/* ── Intro ── */}
       <section className="section section--intro">

@@ -1,0 +1,5 @@
+2026/06/01-09:05:58.386 1558 Creating DB C:\Users\velch\Downloads\BaelTreeHotels\client\.edge-qa-mobile\Default\EdgeCoupons/coupons_data.db since it was missing.
+2026/06/01-09:05:58.415 1558 Reusing MANIFEST C:\Users\velch\Downloads\BaelTreeHotels\client\.edge-qa-mobile\Default\EdgeCoupons/coupons_data.db/MANIFEST-000001
+2026/06/01-09:06:14.915 4e14 Level-0 table #5: started
+2026/06/01-09:06:14.924 4e14 Level-0 table #5: 682643 bytes OK
+2026/06/01-09:06:14.927 4e14 Delete type=0 #3

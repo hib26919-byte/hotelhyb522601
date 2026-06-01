@@ -43,7 +43,7 @@ export const ROOM_CATEGORIES = [
     singlePrice: 2500,
     doublePrice: 3000,
 
-    totalRooms: 25,
+    totalRooms: 5,
 
     amenities: [
       "Complimentary Wi-Fi",
@@ -151,7 +151,7 @@ export const ROOM_CATEGORIES = [
     singlePrice: 6500,
     doublePrice: 7500,
 
-    totalRooms: 5,
+    totalRooms: 15,
 
     amenities: [
       "Separate living area",

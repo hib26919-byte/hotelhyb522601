@@ -4,90 +4,43 @@ const RoomSlider = ({
   images = [],
   title = "Room",
   onClick,
+  showGalleryOverlay = false,
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    if (images.length <= 1) return;
-
+    if (images.length <= 1) return undefined;
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % images.length);
     }, 2000);
-
     return () => clearInterval(interval);
-  }, [images]);
+  }, [images.length]);
 
   return (
-    <div
-      className="room-slider"
-      onClick={onClick}
-      style={{
-        position: "relative",
-        overflow: "hidden",
-        borderRadius: "28px",
-        height: "320px",
-        cursor: "pointer",
-        background: "#111",
-      }}
-    >
-      {/* IMAGE SLIDES */}
+    <div className="room-slider" onClick={onClick} role="button" tabIndex={0}>
       {images.map((image, index) => (
         <img
-          key={`${title}-${index}`}
+          key={`${title}-${image}-${index}`}
           src={image}
-          alt={`${title}-${index}`}
+          alt={`${title} gallery view ${index + 1}`}
           loading="lazy"
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            transition: "opacity 0.8s ease",
-            opacity: index === activeIndex ? 1 : 0,
-          }}
+          className={`room-slider__image ${index === activeIndex ? "active" : ""}`}
         />
       ))}
 
-      {/* DARK OVERLAY */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "linear-gradient(to top, rgba(0,0,0,0.45), rgba(0,0,0,0.1))",
-          zIndex: 2,
-        }}
-      />
+      {showGalleryOverlay && (
+        <div className="room-slider__gallery-overlay">
+          <span>View Gallery</span>
+        </div>
+      )}
 
-      {/* DOTS */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: "18px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          gap: "8px",
-          zIndex: 5,
-        }}
-      >
-        {images.map((_, index) => (
-          <span
-            key={index}
-            style={{
-              width: activeIndex === index ? "24px" : "8px",
-              height: "8px",
-              borderRadius: "999px",
-              background:
-                activeIndex === index
-                  ? "#d4af37"
-                  : "rgba(255,255,255,0.5)",
-              transition: "all 0.3s ease",
-            }}
-          />
-        ))}
-      </div>
+      {images.length > 1 && (
+        <div className="room-slider__dots" aria-hidden="true">
+          {images.map((_, index) => (
+            <span key={index} className={activeIndex === index ? "active" : ""} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
