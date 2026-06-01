@@ -17,7 +17,12 @@ export const ROOM_TOTALS = {
   suite: 15,
 };
 
-export const ACTIVE_BOOKING_STATUSES = new Set(["confirmed", "pending"]);
+export const ACTIVE_BOOKING_STATUSES = new Set([
+  "confirmed",
+  "pending",
+  "pending_payment",
+  "pending_verification",
+]);
 
 export const getDateKey = (value) => format(startOfDay(normalizeDate(value)), "yyyy-MM-dd");
 

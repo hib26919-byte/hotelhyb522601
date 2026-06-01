@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  addDoc,
-  collection,
-  doc,
-  increment,
   serverTimestamp,
   Timestamp,
-  updateDoc,
   where,
 } from "firebase/firestore";
 import {
@@ -23,7 +18,6 @@ import toast from "react-hot-toast";
 import useAuth from "../hooks/useAuth";
 import usePayU from "../hooks/usePayU";
 import { useBooking } from "../context/BookingContext";
-import { db } from "../utils/firebase";
 import {
   buildAvailabilityCalendar,
   calculateAvailability,
@@ -36,10 +30,14 @@ import {
   formatDate,
   getNightsBetween,
 } from "../utils/dateHelpers";
-import { useFirestoreCollection } from "../hooks/useFirestore";
+import { useFirestoreCollection, useFirestoreDocumentRealtime } from "../hooks/useFirestore";
+import { DEFAULT_GST_SETTINGS, getBookingPricing } from "../utils/gst";
+import {
+  createBookingWithInventoryLock,
+  generateBookingId,
+  releaseBookingInventoryLock,
+} from "../utils/bookingTransactions";
 import BookingCalendar from "./BookingCalendar";
-
-const GST_PERCENTAGE = 18;
 
 const stepLabels = ["Dates", "Details", "Payment", "Confirmed"];
 
@@ -68,6 +66,10 @@ const BookingModal = () => {
     queryConstraints: roomConstraints,
     enabled: Boolean(selectedRoom && isOpen),
     realtime: true,
+  });
+  const { data: gstSettings } = useFirestoreDocumentRealtime("settings", "gst", {
+    fallbackData: DEFAULT_GST_SETTINGS,
+    enabled: isOpen,
   });
 
   useEffect(() => {
@@ -125,13 +127,24 @@ const BookingModal = () => {
   );
 
   const nights = getNightsBetween(formValues.checkIn, formValues.checkOut);
-  const perNightPrice =
-    formValues.occupancy === "double"
-      ? selectedRoom?.doublePrice
-      : selectedRoom?.singlePrice;
-  const subtotal = (perNightPrice || 0) * Math.max(nights, 0);
-  const gstAmount = Math.round((subtotal * GST_PERCENTAGE) / 100);
-  const totalAmount = subtotal + gstAmount;
+  const pricing = useMemo(
+    () =>
+      getBookingPricing({
+        room: selectedRoom,
+        occupancy: formValues.occupancy,
+        nights,
+        gstSettings,
+      }),
+    [formValues.occupancy, gstSettings, nights, selectedRoom],
+  );
+  const {
+    roomRatePerNight: perNightPrice,
+    subtotal,
+    gstRate,
+    gstLabel,
+    gstAmount,
+    totalAmount,
+  } = pricing;
   const isAvailable =
     Boolean(formValues.checkIn && formValues.checkOut) &&
     rangeAvailability.available > 0 &&
@@ -189,6 +202,7 @@ const BookingModal = () => {
     }
 
     try {
+      const bookingId = generateBookingId();
       const baseBooking = {
         userId: currentUser.uid,
         userName: formValues.userName.trim(),
@@ -201,66 +215,49 @@ const BookingModal = () => {
         checkOut: Timestamp.fromDate(formValues.checkOut),
         guests: Number(formValues.guests),
         occupancy: formValues.occupancy,
+        roomRatePerNight: perNightPrice,
         totalAmount,
         subtotal,
+        gstRate,
         gstAmount,
-        gstPercentage: GST_PERCENTAGE,
+        gstPercentage: gstRate,
         paymentId: "",
         orderId: "",
-        status: "pending",
+        status: "pending_payment",
+        paymentProvider: "payu",
+        paymentStatus: "initiated",
         createdAt: serverTimestamp(),
         nights,
         source: "online",
       };
 
-      const bookingReference = await addDoc(collection(db, "bookings"), baseBooking);
+      const result = await createBookingWithInventoryLock({
+        bookingId,
+        bookingData: baseBooking,
+        room: selectedRoom,
+        checkIn: formValues.checkIn,
+        checkOut: formValues.checkOut,
+      });
+
+      if (!result.success && result.reason === "ROOM_FULLY_BOOKED") {
+        toast.error("This room was just booked by another guest. Please choose different dates.");
+        setStep(1);
+        return;
+      }
 
       await pay({
         amount: totalAmount,
-        bookingId: bookingReference.id,
+        bookingId,
         userName: formValues.userName,
         userEmail: formValues.userEmail,
         userPhone: formValues.userPhone,
-        onSuccess: async (response) => {
-          const paymentId = response.mihpayid || response.razorpay_payment_id || "";
-          const orderId = response.txnid || response.razorpay_order_id || bookingReference.id;
-
-          await updateDoc(doc(db, "bookings", bookingReference.id), {
-            paymentId,
-            orderId,
-            status: "confirmed",
-            updatedAt: serverTimestamp(),
+        onFailure: async (error) => {
+          await releaseBookingInventoryLock({
+            bookingId,
+            status: "payment_failed",
+            paymentFailureReason: error?.message || "Payment could not be started.",
           });
-          await updateDoc(doc(db, "users", currentUser.uid), {
-            bookingCount: increment(1),
-          });
-
-          await addDoc(collection(db, "notifications"), {
-            type: "new_booking",
-            message: `New booking by ${formValues.userName} for ${selectedRoom.category} Room - ${formatCurrency(totalAmount)}`,
-            isRead: false,
-            relatedId: bookingReference.id,
-            relatedType: "booking",
-            userName: formValues.userName,
-            roomCategory: selectedRoom.category,
-            amount: totalAmount,
-            createdAt: serverTimestamp(),
-          });
-
-          setConfirmation({
-            id: bookingReference.id,
-            paymentId,
-            orderId,
-          });
-          setStep(4);
-          toast.success("Booking confirmed successfully.");
-        },
-        onFailure: async () => {
-          await updateDoc(doc(db, "bookings", bookingReference.id), {
-            status: "cancelled",
-            updatedAt: serverTimestamp(),
-          });
-          toast.error("Payment was dismissed before completion.");
+          toast.error(error?.message || "Payment could not be started.");
         },
       });
     } catch (error) {
@@ -288,7 +285,8 @@ const BookingModal = () => {
         totalAmount,
         subtotal,
         gstAmount,
-        gstPercentage: GST_PERCENTAGE,
+        gstRate,
+        gstPercentage: gstRate,
         paymentId: confirmation.paymentId,
         orderId: confirmation.orderId,
         status: "confirmed",
@@ -470,7 +468,7 @@ const BookingModal = () => {
                 <strong>{formatCurrency(subtotal)}</strong>
               </div>
               <div>
-                <span>GST ({GST_PERCENTAGE}%)</span>
+                <span>{gstLabel}</span>
                 <strong>{formatCurrency(gstAmount)}</strong>
               </div>
               <div className="summary-card__total">
@@ -553,7 +551,7 @@ const BookingModal = () => {
                 onClick={handleSubmit}
                 disabled={processing || !isAvailable}
               >
-                {processing ? "Processing..." : "Pay with Razorpay"}
+                {processing ? "Processing..." : "Pay with PayU"}
               </button>
             )}
           </div>

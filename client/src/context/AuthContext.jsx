@@ -9,8 +9,6 @@ import {
   updatePassword,
 } from "firebase/auth";
 import {
-  addDoc,
-  collection,
   doc,
   getDoc,
   serverTimestamp,
@@ -18,6 +16,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { auth, db, googleProvider } from "../utils/firebase";
+import { notifyNewUser } from "../utils/notifications";
 
 export const AuthContext = createContext(null);
 
@@ -40,13 +39,10 @@ export const AuthProvider = ({ children }) => {
         bookingCount: 0,
       };
       await setDoc(reference, baseProfile);
-      await addDoc(collection(db, "notifications"), {
-        type: "new_user",
-        message: `New user registered: ${baseProfile.name} (${baseProfile.email})`,
-        isRead: false,
-        relatedId: user.uid,
-        relatedType: "user",
-        createdAt: serverTimestamp(),
+      await notifyNewUser({
+        uid: user.uid,
+        name: baseProfile.name,
+        email: baseProfile.email,
       }).catch(() => {});
       setProfile({ id: user.uid, ...baseProfile });
       return;
@@ -80,13 +76,10 @@ export const AuthProvider = ({ children }) => {
       bookingCount: 0,
     };
     await setDoc(doc(db, "users", credentials.user.uid), userDocument);
-    await addDoc(collection(db, "notifications"), {
-      type: "new_user",
-      message: `New user registered: ${name} (${email})`,
-      isRead: false,
-      relatedId: credentials.user.uid,
-      relatedType: "user",
-      createdAt: serverTimestamp(),
+    await notifyNewUser({
+      uid: credentials.user.uid,
+      name,
+      email,
     }).catch(() => {});
     setProfile({ id: credentials.user.uid, ...userDocument });
     return credentials.user;

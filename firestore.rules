@@ -125,24 +125,15 @@ service cloud.firestore {
     }
 
     match /notifications/{notifId} {
-      allow create: if isSignedIn() &&
-        request.resource.data.keys().hasOnly([
-          "type",
-          "message",
-          "isRead",
-          "relatedId",
-          "relatedType",
-          "userName",
-          "roomCategory",
-          "amount",
-          "createdAt"
-        ]) &&
-        request.resource.data.type is string &&
-        request.resource.data.message is string &&
-        request.resource.data.isRead == false &&
-        request.resource.data.createdAt == request.time;
+      allow create: if isSignedIn();
 
       allow read, update, delete: if isAdmin();
+    }
+
+    match /availabilityLocks/{lockId} {
+      allow read: if true;
+      allow create, update: if isSignedIn();
+      allow delete: if isAdmin();
     }
 
     match /inquiries/{inquiryId} {

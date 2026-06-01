@@ -1,17 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
+  addDoc,
   collection,
   doc,
   getDoc,
-  getDocs,
   increment,
-  orderBy,
-  query,
   serverTimestamp,
   updateDoc,
-  where,
-  addDoc,
 } from "firebase/firestore";
 import {
   CheckCircle2,
@@ -29,6 +25,7 @@ import SEOHead from "../components/SEOHead";
 import { db } from "../utils/firebase";
 import { formatCurrency } from "../utils/dateHelpers";
 import { ROOM_CATEGORIES } from "../utils/siteData";
+import { releaseBookingInventoryLock } from "../utils/bookingTransactions";
 
 // ─── PayU Callback Handler ────────────────────────────────────────────────────
 // PayU POSTs to our Express server (/api/payment/success or /failure),
@@ -52,52 +49,39 @@ const PayUResult = ({ status, txnid, mihpayid }) => {
   const success = status === "success";
 
   useEffect(() => {
-    if (!currentUser || !success || didRun.current) {
-      if (!success) setLoading(false);
+    if (!currentUser || didRun.current) {
+      if (!currentUser) setLoading(false);
       return;
     }
     didRun.current = true;
 
     const confirmBooking = async () => {
       try {
-        let bookingDoc = null;
-        let bookingId  = null;
-
-        // 1. Find booking by txnid (which equals the Firestore doc ID we passed)
-        if (txnid) {
-          const snap = await getDoc(doc(db, "bookings", txnid));
-          if (snap.exists()) {
-            bookingDoc = { id: snap.id, ...snap.data() };
-            bookingId  = snap.id;
-          }
+        if (!txnid) {
+          setLoading(false);
+          return;
         }
 
-        // Fallback: fetch most-recent pending booking for this user
-        if (!bookingDoc) {
-          const q = query(
-            collection(db, "bookings"),
-            where("userId", "==", currentUser.uid),
-            orderBy("createdAt", "desc"),
-          );
-          const snap = await getDocs(q);
-          if (!snap.empty) {
-            bookingDoc = { id: snap.docs[0].id, ...snap.docs[0].data() };
-            bookingId  = snap.docs[0].id;
-          }
-        }
+        const snap = await getDoc(doc(db, "bookings", txnid));
+        const bookingDoc = snap.exists() ? { id: snap.id, ...snap.data() } : null;
+        const bookingId = snap.id;
 
         if (!bookingDoc || !bookingId) {
           setLoading(false);
           return;
         }
 
+        const pendingStatuses = ["pending", "pending_payment", "pending_verification"];
+
         // 2. Update booking to confirmed (only if still pending to avoid double-write)
-        if (bookingDoc.status === "pending") {
+        if (success && pendingStatuses.includes(bookingDoc.status)) {
           await updateDoc(doc(db, "bookings", bookingId), {
             status:    "confirmed",
+            paymentStatus: "verified",
             paymentId: mihpayid || "",
             orderId:   txnid    || "",
             confirmedAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
           });
 
           // 3. Increment user bookingCount
@@ -112,18 +96,28 @@ const PayUResult = ({ status, txnid, mihpayid }) => {
               message:   `Booking confirmed for ${bookingDoc.userName} — ${bookingDoc.roomCategory} — ₹${bookingDoc.totalAmount}`,
               isRead:    false,
               relatedId: bookingId,
+              relatedType: "booking",
+              userName: bookingDoc.userName,
+              roomCategory: bookingDoc.roomCategory,
+              amount: bookingDoc.totalAmount,
               createdAt: serverTimestamp(),
             });
           } catch {
             // Notification failure is non-critical
           }
+        } else if (!success && pendingStatuses.includes(bookingDoc.status)) {
+          await releaseBookingInventoryLock({
+            bookingId,
+            status: "payment_failed",
+            paymentFailureReason: "PayU returned a failed payment status.",
+          });
         }
 
         // 5. Re-fetch the now-confirmed booking
         const refreshed = await getDoc(doc(db, "bookings", bookingId));
         const finalBooking = { id: refreshed.id, ...refreshed.data() };
         setBooking(finalBooking);
-        setConfirmed(true);
+        setConfirmed(success && finalBooking.status === "confirmed");
 
         // Fetch room details for the invoice
         if (finalBooking.roomId) {
