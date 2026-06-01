@@ -92,7 +92,8 @@ That produces:
 
 ## Firebase Notes
 
-- Apply [firestore.rules](/C:/Users/velch/Documents/BaelTreeHotels/firestore.rules) in the Firebase Console.
+- Deploy Firestore and Storage rules with `firebase deploy --only firestore:rules,storage`.
+- If deploying from the Firebase Console, publish `firestore.rules` from the Firestore Rules tab and `storage.rules` from the Storage Rules tab.
 - Room videos are uploaded to Firebase Storage from the admin room manager.
 - Gallery, room images, and festival banners use the ImgBB helper in the client.
 

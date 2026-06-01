@@ -134,6 +134,97 @@ export const buildAvailabilityCalendar = ({
   return calendar;
 };
 
+const buildAvailabilityLockIndex = (locks = [], category) => {
+  const normalizedCategory = (category || "").toLowerCase();
+
+  return locks.reduce((index, lock) => {
+    if ((lock?.category || "").toLowerCase() !== normalizedCategory || !lock?.date) {
+      return index;
+    }
+
+    index.set(lock.date, lock);
+    return index;
+  }, new Map());
+};
+
+const getLockAvailability = (lock, fallbackTotal) => {
+  const total = Number(lock?.totalRooms || fallbackTotal || 0);
+  const occupied = Math.max(0, Number(lock?.occupied || 0));
+  const available = Math.max(0, total - occupied);
+
+  return {
+    occupied,
+    available,
+    total,
+    isAvailable: available > 0,
+  };
+};
+
+export const calculateAvailabilityFromLocks = ({
+  locks = [],
+  category,
+  checkIn,
+  checkOut,
+  totalRooms = getRoomTotal(category),
+}) => {
+  const total = Number(totalRooms || 0);
+  const stayDates = getDatesInRange(checkIn, checkOut);
+
+  if (stayDates.length === 0) {
+    return {
+      occupied: 0,
+      available: total,
+      total,
+      isAvailable: total > 0,
+    };
+  }
+
+  const lockIndex = buildAvailabilityLockIndex(locks, category);
+  const minimumAvailable = stayDates.reduce((available, day) => {
+    const dayAvailability = getLockAvailability(lockIndex.get(getDateKey(day)), total);
+    return Math.min(available, dayAvailability.available);
+  }, total);
+
+  return {
+    occupied: Math.max(0, total - minimumAvailable),
+    available: minimumAvailable,
+    total,
+    isAvailable: minimumAvailable > 0,
+  };
+};
+
+export const buildAvailabilityCalendarFromLocks = ({
+  locks = [],
+  category,
+  totalRooms = getRoomTotal(category),
+  startDate = new Date(),
+  days = 370,
+}) => {
+  const first = startOfDay(startDate);
+  const calendar = new Map();
+  const lockIndex = buildAvailabilityLockIndex(locks, category);
+
+  Array.from({ length: days }).forEach((_, index) => {
+    const day = addDays(first, index);
+    const availability = getLockAvailability(
+      lockIndex.get(getDateKey(day)),
+      totalRooms,
+    );
+
+    let status = "available";
+    if (availability.available <= 0) status = "full";
+    else if (availability.available <= 3) status = "limited";
+
+    calendar.set(getDateKey(day), {
+      ...availability,
+      status,
+      date: day,
+    });
+  });
+
+  return calendar;
+};
+
 export const getAvailabilityLabel = ({ available, total }) => {
   if (available <= 0) return "Fully Booked";
   if (available <= 3) return `Limited - ${available} left`;

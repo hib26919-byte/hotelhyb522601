@@ -19,8 +19,8 @@ import useAuth from "../hooks/useAuth";
 import usePayU from "../hooks/usePayU";
 import { useBooking } from "../context/BookingContext";
 import {
-  buildAvailabilityCalendar,
-  calculateAvailability,
+  buildAvailabilityCalendarFromLocks,
+  calculateAvailabilityFromLocks,
   getAvailabilityLabel,
   getRoomTotal,
   isRangeSelectable,
@@ -37,7 +37,7 @@ import {
   generateBookingId,
   releaseBookingInventoryLock,
 } from "../utils/bookingTransactions";
-import BookingCalendar from "./BookingCalendar";
+import BookingDateTabs from "./BookingDateTabs";
 
 const stepLabels = ["Dates", "Details", "Payment", "Confirmed"];
 
@@ -58,10 +58,10 @@ const BookingModal = () => {
   });
 
   const roomConstraints = useMemo(
-    () => (selectedRoom?.category ? [where("roomCategory", "==", selectedRoom.category)] : []),
+    () => (selectedRoom?.category ? [where("category", "==", selectedRoom.category.toLowerCase())] : []),
     [selectedRoom?.category],
   );
-  const { data: roomBookings, loading: availabilityLoading } = useFirestoreCollection("bookings", {
+  const { data: availabilityLocks, loading: availabilityLoading } = useFirestoreCollection("availabilityLocks", {
     fallbackData: [],
     queryConstraints: roomConstraints,
     enabled: Boolean(selectedRoom && isOpen),
@@ -105,25 +105,24 @@ const BookingModal = () => {
   const totalRooms = getRoomTotal(selectedRoom);
   const availabilityCalendar = useMemo(
     () =>
-      buildAvailabilityCalendar({
-        bookings: roomBookings,
+      buildAvailabilityCalendarFromLocks({
+        locks: availabilityLocks,
         category: selectedRoom?.category,
         totalRooms,
-        days: 60,
       }),
-    [roomBookings, selectedRoom?.category, totalRooms],
+    [availabilityLocks, selectedRoom?.category, totalRooms],
   );
 
   const rangeAvailability = useMemo(
     () =>
-      calculateAvailability({
-        bookings: roomBookings,
+      calculateAvailabilityFromLocks({
+        locks: availabilityLocks,
         category: selectedRoom?.category,
         checkIn: formValues.checkIn,
         checkOut: formValues.checkOut,
         totalRooms,
       }),
-    [formValues.checkIn, formValues.checkOut, roomBookings, selectedRoom?.category, totalRooms],
+    [availabilityLocks, formValues.checkIn, formValues.checkOut, selectedRoom?.category, totalRooms],
   );
 
   const nights = getNightsBetween(formValues.checkIn, formValues.checkOut);
@@ -338,14 +337,15 @@ const BookingModal = () => {
 
         {step === 1 && (
           <div className="booking-step">
-            <BookingCalendar
+            <BookingDateTabs
               checkIn={formValues.checkIn}
               checkOut={formValues.checkOut}
               availabilityCalendar={availabilityCalendar}
-              totalAmount={totalAmount}
+              pricing={pricing}
               onChange={({ checkIn, checkOut }) =>
                 setFormValues((previous) => ({ ...previous, checkIn, checkOut }))
               }
+              onConfirm={handleNext}
             />
             <div className={`booking-availability ${isAvailable ? "is-open" : "is-full"}`}>
               <span>
@@ -521,7 +521,12 @@ const BookingModal = () => {
 
         {step < 4 && (
           <div className="modal-actions">
-            {step > 1 ? (
+            {step === 1 ? (
+              <span className="booking-meta">
+                <ShieldCheck size={16} />
+                Live availability protects every booking
+              </span>
+            ) : (
               <button
                 type="button"
                 className="btn btn-outline"
@@ -529,18 +534,12 @@ const BookingModal = () => {
               >
                 Back
               </button>
-            ) : (
-              <span className="booking-meta">
-                <ShieldCheck size={16} />
-                Live availability protects every booking
-              </span>
             )}
-            {step < 3 ? (
+            {step === 1 ? null : step < 3 ? (
               <button
                 type="button"
                 className="btn btn-gold"
                 onClick={handleNext}
-                disabled={step === 1 && !isAvailable}
               >
                 Continue
               </button>

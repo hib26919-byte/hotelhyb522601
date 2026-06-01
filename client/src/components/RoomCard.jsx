@@ -16,7 +16,7 @@ import {
 import { useBooking } from "../context/BookingContext";
 import { useFirestoreCollection } from "../hooks/useFirestore";
 import {
-  calculateAvailability,
+  calculateAvailabilityFromLocks,
   getAvailabilityLabel,
   getRoomTotal,
 } from "../utils/availability";
@@ -49,13 +49,13 @@ const RoomCard = ({ room }) => {
   const [showDetail, setShowDetail] = useState(false);
   const [occupancy, setOccupancy] = useState("single");
 
-  const bookingConstraints = useMemo(
-    () => (room?.category ? [where("roomCategory", "==", room.category)] : []),
+  const lockConstraints = useMemo(
+    () => (room?.category ? [where("category", "==", room.category.toLowerCase())] : []),
     [room?.category],
   );
-  const { data: bookings } = useFirestoreCollection("bookings", {
+  const { data: availabilityLocks } = useFirestoreCollection("availabilityLocks", {
     fallbackData: [],
-    queryConstraints: bookingConstraints,
+    queryConstraints: lockConstraints,
     enabled: Boolean(room?.category),
     realtime: true,
   });
@@ -64,14 +64,14 @@ const RoomCard = ({ room }) => {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
-    return calculateAvailability({
-      bookings,
+    return calculateAvailabilityFromLocks({
+      locks: availabilityLocks,
       category: room.category,
       checkIn: today,
       checkOut: tomorrow,
       totalRooms: getRoomTotal(room),
     });
-  }, [bookings, room]);
+  }, [availabilityLocks, room]);
 
   const price = occupancy === "double" ? room.doublePrice : room.singlePrice;
   const availabilityClass =
