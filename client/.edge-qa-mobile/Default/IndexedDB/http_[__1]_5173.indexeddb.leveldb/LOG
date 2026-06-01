@@ -1,6 +1,0 @@
-2026/06/01-09:06:01.945 6b80 Creating DB C:\Users\velch\Downloads\BaelTreeHotels\client\.edge-qa-mobile\Default\IndexedDB\http_[__1]_5173.indexeddb.leveldb since it was missing.
-2026/06/01-09:06:01.961 6b80 Reusing MANIFEST C:\Users\velch\Downloads\BaelTreeHotels\client\.edge-qa-mobile\Default\IndexedDB\http_[__1]_5173.indexeddb.leveldb/MANIFEST-000001
-2026/06/01-09:06:01.988 29fc Level-0 table #5: started
-2026/06/01-09:06:01.992 29fc Level-0 table #5: 1311 bytes OK
-2026/06/01-09:06:01.998 29fc Delete type=0 #3
-2026/06/01-09:06:01.999 6b80 Manual compaction at level-0 from '\x00\x01\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x02\x00\x00\x00' @ 0 : 0; will stop at (end)

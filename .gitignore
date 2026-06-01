@@ -9,4 +9,13 @@ client/.env
 server/.env
 firebase-debug.log
 *.log
+node_modules
+.env
+dist
+build
+
+.edge-qa-mobile
+client/.edge-qa-mobile
+
+*.log
 
